@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python data/pull.py)",
-      "Bash(python -c \":*)"
-    ]
-  }
-}
