@@ -18,5 +18,8 @@ build/
 # macOS
 .DS_Store
 
-# cache data files
-*.cache/
+# data files
+data/cache/
+
+# claude files
+.claude/
