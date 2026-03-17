@@ -1,0 +1,10 @@
+{
+  "learning_rate": 0.011320904800926235,
+  "max_iter": 848,
+  "max_depth": 5,
+  "min_samples_leaf": 46,
+  "l2_regularization": 0.4303652916281717,
+  "max_bins": 255,
+  "loss": "log_loss",
+  "random_state": 42
+}

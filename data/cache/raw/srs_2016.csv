@@ -1,0 +1,352 @@
+season,teamId,team,conference,rating
+2016,338,Villanova,Big East,16.6
+2016,200,North Carolina,ACC,16.3
+2016,169,Michigan State,Big Ten,16.1
+2016,150,Louisville,ACC,15.5
+2016,131,Kansas,Big 12,15.1
+2016,352,Wichita State,MVC,14.5
+2016,135,Kentucky,SEC,14.5
+2016,339,Virginia,ACC,14.4
+2016,121,Indiana,Big Ten,14.2
+2016,236,Purdue,Big Ten,13.5
+2016,347,West Virginia,Big 12,12.9
+2016,102,Gonzaga,WCC,12.9
+2016,282,Stephen F. Austin,Southland,12.8
+2016,72,Duke,ACC,12.4
+2016,248,SMU,American,12.2
+2016,335,Valparaiso,Horizon,11.9
+2016,293,Texas A&M,SEC,11.7
+2016,217,Oklahoma,Big 12,11.6
+2016,168,Miami,ACC,11.4
+2016,359,Xavier,Big East,11.4
+2016,253,Saint Mary's,WCC,11.3
+2016,124,Iowa,Big Ten,11.2
+2016,223,Oregon,Pac-12,11.0
+2016,160,Maryland,Big Ten,10.9
+2016,11,Arizona,Pac-12,10.7
+2016,336,Vanderbilt,SEC,10.7
+2016,333,VCU,A-10,10.6
+2016,360,Yale,Ivy,10.3
+2016,125,Iowa State,Big 12,9.6
+2016,18,BYU,WCC,9.3
+2016,144,Little Rock,Sun Belt,9.2
+2016,285,Stony Brook,Am. East,9.1
+2016,234,Princeton,Ivy,8.9
+2016,87,Florida,SEC,8.8
+2016,314,UConn,American,8.8
+2016,108,Hawai'i,Big West,8.6
+2016,251,Saint Joseph's,A-10,8.6
+2016,257,San Diego State,Mountain West,8.6
+2016,40,California,Pac-12,8.5
+2016,36,Cal State Bakersfield,WAC,8.4
+2016,51,Cincinnati,American,8.3
+2016,286,Syracuse,ACC,8.2
+2016,324,UT Arlington,Sun Belt,8.2
+2016,229,Pittsburgh,ACC,8.1
+2016,213,Notre Dame,ACC,8.1
+2016,214,Oakland,Horizon,8.0
+2016,96,George Washington,A-10,7.9
+2016,64,Dayton,A-10,7.9
+2016,20,Baylor,Big 12,7.9
+2016,34,Butler,Big East,7.9
+2016,178,Monmouth,MAAC,7.7
+2016,82,Evansville,MVC,7.7
+2016,331,Utah,Pac-12,7.4
+2016,61,Creighton,Big East,7.4
+2016,263,Seton Hall,Big East,7.1
+2016,355,Wisconsin,Big Ten,7.1
+2016,266,South Carolina,SEC,7.0
+2016,306,UAlbany,Am. East,7.0
+2016,192,New Mexico State,WAC,7.0
+2016,270,South Dakota State,Summit,7.0
+2016,104,Grand Canyon,WAC,7.0
+2016,3,Akron,MAC,6.9
+2016,90,Florida State,ACC,6.9
+2016,323,USC,Pac-12,6.8
+2016,52,Clemson,ACC,6.8
+2016,321,UNC Wilmington,CAA,6.8
+2016,49,Chattanooga,SoCon,6.6
+2016,212,Northwestern,Big Ten,6.6
+2016,308,UC Irvine,Big West,6.3
+2016,219,Old Dominion,CUSA,6.3
+2016,101,Georgia Tech,ACC,6.2
+2016,113,Houston,American,5.9
+2016,123,Iona,MAAC,5.8
+2016,209,Northern Iowa,MVC,5.6
+2016,129,James Madison,CAA,5.4
+2016,353,William & Mary,CAA,5.3
+2016,264,Siena,MAAC,5.2
+2016,277,St. Bonaventure,A-10,5.2
+2016,240,Rhode Island,A-10,5.2
+2016,170,Michigan,Big Ten,5.0
+2016,58,Columbia,Ivy,5.0
+2016,12,Arkansas,SEC,5.0
+2016,110,Hofstra,CAA,4.9
+2016,148,Louisiana,Sun Belt,4.9
+2016,304,Tulsa,American,4.8
+2016,235,Providence,Big East,4.8
+2016,345,Weber State,Big Sky,4.8
+2016,340,Virginia Tech,ACC,4.6
+2016,172,Milwaukee,Horizon,4.6
+2016,295,Texas,Big 12,4.5
+2016,319,UNC Asheville,Big South,4.5
+2016,25,Boise State,Mountain West,4.5
+2016,298,Texas Tech,Big 12,4.4
+2016,305,UAB,CUSA,4.4
+2016,98,Georgia,SEC,4.3
+2016,22,Belmont,OVC,4.3
+2016,343,Washington,Pac-12,4.3
+2016,242,Richmond,A-10,4.2
+2016,300,Toledo,MAC,4.2
+2016,56,Colorado,Pac-12,4.2
+2016,179,Montana,Big Sky,4.1
+2016,220,Ole Miss,SEC,4.1
+2016,313,UCLA,Pac-12,4.0
+2016,132,Kansas State,Big 12,4.0
+2016,32,Bucknell,Patriot,3.8
+2016,171,Middle Tennessee,CUSA,3.8
+2016,188,Nebraska,Big Ten,3.7
+2016,174,Mississippi State,SEC,3.7
+2016,97,Georgetown,Big East,3.6
+2016,109,High Point,Big South,3.5
+2016,185,NC State,ACC,3.5
+2016,163,Memphis,American,3.5
+2016,311,UC Santa Barbara,Big West,3.5
+2016,216,Ohio State,Big Ten,3.4
+2016,290,Tennessee State,OVC,3.3
+2016,181,Morehead State,OVC,3.3
+2016,354,Winthrop,Big South,3.3
+2016,296,Texas Southern,SWAC,3.2
+2016,322,UNLV,Mountain West,3.2
+2016,92,Fresno State,Mountain West,3.1
+2016,105,Green Bay,Horizon,3.1
+2016,224,Oregon State,Pac-12,3.0
+2016,136,LSU,SEC,3.0
+2016,145,Long Beach State,Big West,3.0
+2016,337,Vermont,Am. East,2.9
+2016,191,New Mexico,Mountain West,2.9
+2016,316,UL Monroe,Sun Belt,2.8
+2016,215,Ohio,MAC,2.7
+2016,237,Purdue Fort Wayne,Summit,2.7
+2016,46,Charleston,CAA,2.6
+2016,149,Louisiana Tech,CUSA,2.5
+2016,341,Wagner,NEC,2.4
+2016,184,Murray State,OVC,2.3
+2016,19,Ball State,MAC,2.3
+2016,63,Davidson,A-10,2.3
+2016,292,Tennessee,SEC,2.3
+2016,5,Alabama,SEC,2.2
+2016,203,North Florida,ASUN,2.2
+2016,289,Temple,American,2.1
+2016,221,Omaha,Summit,2.1
+2016,273,Southern Illinois,MVC,2.0
+2016,88,Florida Gulf Coast,ASUN,2.0
+2016,75,East Tennessee State,SoCon,1.9
+2016,158,Marshall,CUSA,1.9
+2016,10,Arizona State,Pac-12,1.9
+2016,119,Illinois State,MVC,1.9
+2016,54,Coastal Carolina,Big South,1.8
+2016,141,Lehigh,Patriot,1.7
+2016,357,Wright State,Horizon,1.6
+2016,205,Northeastern,CAA,1.6
+2016,228,Pepperdine,WCC,1.5
+2016,189,Nevada,Mountain West,1.5
+2016,157,Marquette,Big East,1.4
+2016,202,North Dakota State,Summit,1.4
+2016,33,Buffalo,MAC,1.3
+2016,329,Utah State,Mountain West,1.2
+2016,187,Navy,Patriot,1.1
+2016,274,Southern,SWAC,1.0
+2016,80,Eastern Washington,Big Sky,1.0
+2016,294,Texas A&M-Corpus Christi,Southland,1.0
+2016,45,Central Michigan,MAC,1.0
+2016,164,Mercer,SoCon,0.6
+2016,218,Oklahoma State,Big 12,0.6
+2016,93,Furman,SoCon,0.5
+2016,301,Towson,CAA,0.5
+2016,79,Eastern Michigan,MAC,0.5
+2016,126,Jackson State,SWAC,0.5
+2016,208,Northern Illinois,MAC,0.3
+2016,73,Duquesne,A-10,0.2
+2016,201,North Dakota,Big Sky,0.1
+2016,107,Harvard,Ivy,0.1
+2016,91,Fordham,A-10,0.0
+2016,78,Eastern Kentucky,OVC,0.0
+2016,186,NJIT,ASUN,0.0
+2016,81,Elon,CAA,0.0
+2016,356,Wofford,SoCon,-0.1
+2016,57,Colorado State,Mountain West,-0.1
+2016,291,Tennessee Tech,OVC,-0.1
+2016,118,Illinois,Big Ten,-0.3
+2016,342,Wake Forest,ACC,-0.4
+2016,134,Kent State,MAC,-0.4
+2016,69,Detroit Mercy,Horizon,-0.5
+2016,281,Stanford,Pac-12,-0.6
+2016,117,Idaho,Big Sky,-0.7
+2016,255,Sam Houston,Southland,-0.7
+2016,27,Boston University,Patriot,-0.8
+2016,358,Wyoming,Mountain West,-0.9
+2016,15,Army,Patriot,-0.9
+2016,83,Fairfield,MAAC,-1.0
+2016,254,Saint Peter's,MAAC,-1.1
+2016,351,Western Michigan,MAC,-1.1
+2016,350,Western Kentucky,CUSA,-1.2
+2016,100,Georgia State,Sun Belt,-1.2
+2016,222,Oral Roberts,Summit,-1.3
+2016,122,Indiana State,MVC,-1.3
+2016,256,Samford,SoCon,-1.4
+2016,190,New Hampshire,Am. East,-1.4
+2016,130,Kansas City,WAC,-1.5
+2016,348,Western Carolina,SoCon,-1.5
+2016,239,Radford,Big South,-1.5
+2016,183,Mount St. Mary's,NEC,-1.7
+2016,243,Rider,MAAC,-1.8
+2016,68,Denver,Summit,-1.8
+2016,17,Austin Peay,OVC,-1.8
+2016,325,UT Martin,OVC,-1.9
+2016,161,Massachusetts,A-10,-1.9
+2016,48,Charlotte,CUSA,-1.9
+2016,180,Montana State,Big Sky,-2.0
+2016,226,Penn State,Big Ten,-2.1
+2016,94,Gardner-Webb,Big South,-2.2
+2016,42,Canisius,MAAC,-2.2
+2016,327,UTEP,CUSA,-2.3
+2016,196,Norfolk State,MEAC,-2.4
+2016,320,UNC Greensboro,SoCon,-2.4
+2016,106,Hampton,MEAC,-2.5
+2016,89,Florida International,CUSA,-2.6
+2016,55,Colgate,Patriot,-2.6
+2016,151,Loyola Chicago,MVC,-2.7
+2016,35,Cal Poly,Big West,-2.9
+2016,177,Missouri,SEC,-2.9
+2016,99,Georgia Southern,Sun Belt,-3.0
+2016,297,Texas State,Sun Belt,-3.0
+2016,6,Alabama State,SWAC,-3.0
+2016,173,Minnesota,Big Ten,-3.0
+2016,62,Dartmouth,Ivy,-3.2
+2016,267,South Carolina State,MEAC,-3.3
+2016,269,South Dakota,Summit,-3.3
+2016,364,St. Francis Brooklyn,NEC,-3.4
+2016,74,East Carolina,American,-3.5
+2016,84,Fairleigh Dickinson,NEC,-3.5
+2016,120,Incarnate Word,Southland,-3.6
+2016,4,Alabama A&M,SWAC,-3.6
+2016,332,Utah Valley,WAC,-3.7
+2016,95,George Mason,A-10,-3.7
+2016,146,Long Island University,NEC,-3.7
+2016,231,Portland State,Big Sky,-3.8
+2016,259,San Francisco,WCC,-3.8
+2016,230,Portland,WCC,-3.9
+2016,153,Loyola Marymount,WCC,-3.9
+2016,77,Eastern Illinois,OVC,-3.9
+2016,287,TCU,Big 12,-4.0
+2016,155,Manhattan,MAAC,-4.1
+2016,127,Jacksonville,ASUN,-4.2
+2016,115,IU Indianapolis,Summit,-4.3
+2016,349,Western Illinois,Summit,-4.3
+2016,309,UC Riverside,Big West,-4.3
+2016,16,Auburn,SEC,-4.3
+2016,312,UCF,American,-4.3
+2016,28,Bowling Green,MAC,-4.3
+2016,278,St. Francis (PA),NEC,-4.3
+2016,307,UC Davis,Big West,-4.6
+2016,262,Seattle U,WAC,-4.7
+2016,225,Pacific,WCC,-4.8
+2016,143,Lipscomb,ASUN,-4.8
+2016,303,Tulane,American,-4.8
+2016,116,Idaho State,Big Sky,-4.9
+2016,111,Holy Cross,Patriot,-4.9
+2016,152,Loyola Maryland,Patriot,-4.9
+2016,210,Northern Kentucky,Horizon,-5.0
+2016,133,Kennesaw State,ASUN,-5.1
+2016,227,Pennsylvania,Ivy,-5.1
+2016,244,Robert Morris,NEC,-5.1
+2016,249,Sacramento State,Big Sky,-5.1
+2016,65,DePaul,Big East,-5.1
+2016,250,Sacred Heart,NEC,-5.2
+2016,167,Miami (OH),MAC,-5.2
+2016,252,Saint Louis,A-10,-5.3
+2016,199,North Carolina Central,MEAC,-5.6
+2016,176,Missouri State,MVC,-5.6
+2016,13,Arkansas State,Sun Belt,-5.7
+2016,38,Cal State Northridge,Big West,-5.7
+2016,283,Stetson,ASUN,-5.8
+2016,265,South Alabama,Sun Belt,-5.9
+2016,7,Alcorn State,SWAC,-5.9
+2016,71,Drexel,CAA,-6.0
+2016,30,Brown,Ivy,-6.1
+2016,112,Houston Christian,Southland,-6.1
+2016,2,Air Force,Mountain West,-6.1
+2016,344,Washington State,Pac-12,-6.2
+2016,261,Santa Clara,WCC,-6.2
+2016,128,Jacksonville State,OVC,-6.2
+2016,238,Quinnipiac,MAAC,-6.3
+2016,246,SE Louisiana,Southland,-6.4
+2016,23,Bethune-Cookman,MEAC,-6.4
+2016,41,Campbell,Big South,-6.5
+2016,142,Liberty,Big South,-6.5
+2016,70,Drake,MVC,-6.6
+2016,9,App State,Sun Belt,-6.7
+2016,147,Longwood,Big South,-6.7
+2016,260,San José State,Mountain West,-6.7
+2016,37,Cal State Fullerton,Big West,-6.8
+2016,60,Cornell,Ivy,-7.0
+2016,182,Morgan State,MEAC,-7.0
+2016,26,Boston College,ACC,-7.1
+2016,47,Charleston Southern,Big South,-7.1
+2016,193,New Orleans,Southland,-7.2
+2016,241,Rice,CUSA,-7.2
+2016,271,South Florida,American,-7.4
+2016,8,American University,Patriot,-7.5
+2016,156,Marist,MAAC,-7.6
+2016,194,Niagara,MAAC,-7.7
+2016,247,SIU Edwardsville,OVC,-7.7
+2016,275,Southern Miss,CUSA,-7.8
+2016,53,Cleveland State,Horizon,-7.8
+2016,318,UMass Lowell,Am. East,-8.0
+2016,279,St. John's,Big East,-8.0
+2016,162,McNeese,Southland,-8.0
+2016,24,Binghamton,Am. East,-8.1
+2016,361,Youngstown State,Horizon,-8.2
+2016,258,San Diego,WCC,-8.3
+2016,137,La Salle,A-10,-8.3
+2016,159,Maryland Eastern Shore,MEAC,-8.4
+2016,138,Lafayette,Patriot,-8.5
+2016,204,North Texas,CUSA,-8.5
+2016,1,Abilene Christian,Southland,-8.6
+2016,43,Central Arkansas,Southland,-8.7
+2016,302,Troy,Sun Belt,-8.7
+2016,86,Florida Atlantic,CUSA,-8.8
+2016,66,Delaware,CAA,-8.8
+2016,233,Presbyterian,Big South,-9.0
+2016,114,Howard,MEAC,-9.0
+2016,363,Hartford,Am. East,-9.0
+2016,380,Savannah State,MEAC,-9.1
+2016,268,South Carolina Upstate,ASUN,-9.2
+2016,139,Lamar,Southland,-9.2
+2016,207,Northern Colorado,Big Sky,-9.2
+2016,334,VMI,SoCon,-9.3
+2016,211,Northwestern State,Southland,-9.6
+2016,195,Nicholls,Southland,-9.6
+2016,232,Prairie View A&M,SWAC,-9.7
+2016,317,UMBC,Am. East,-9.7
+2016,59,Coppin State,MEAC,-9.8
+2016,175,Mississippi Valley State,SWAC,-10.0
+2016,299,The Citadel,SoCon,-10.3
+2016,245,Rutgers,Big Ten,-10.5
+2016,14,Arkansas-Pine Bluff,SWAC,-10.5
+2016,198,North Carolina A&T,MEAC,-10.5
+2016,326,UT Rio Grande Valley,WAC,-11.1
+2016,103,Grambling,SWAC,-11.2
+2016,31,Bryant,NEC,-11.5
+2016,154,Maine,Am. East,-11.9
+2016,276,Southern Utah,Big Sky,-12.4
+2016,206,Northern Arizona,Big Sky,-12.4
+2016,272,Southeast Missouri State,OVC,-12.5
+2016,328,UTSA,CUSA,-12.7
+2016,29,Bradley,MVC,-13.5
+2016,50,Chicago State,WAC,-14.0
+2016,315,UIC,Horizon,-14.1
+2016,85,Florida A&M,MEAC,-14.2
+2016,67,Delaware State,MEAC,-15.3
+2016,44,Central Connecticut,NEC,-15.7

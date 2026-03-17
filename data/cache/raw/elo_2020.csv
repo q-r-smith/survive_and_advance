@@ -1,0 +1,354 @@
+season,teamId,team,conference,elo
+2020,1,Abilene Christian,Southland Conference,1847
+2020,2,Air Force,Mountain West Conference,1639
+2020,3,Akron,Mid-American Conference,1916
+2020,5,Alabama,Southeastern Conference,1840
+2020,4,Alabama A&M,Southwestern Athletic Conference,1256
+2020,6,Alabama State,Southwestern Athletic Conference,1375
+2020,7,Alcorn State,Southwestern Athletic Conference,1490
+2020,8,American University,Patriot League,1724
+2020,9,App State,Sun Belt Conference,1691
+2020,11,Arizona,Pac-12 Conference,1972
+2020,10,Arizona State,Pac-12 Conference,1822
+2020,12,Arkansas,Southeastern Conference,1857
+2020,14,Arkansas-Pine Bluff,Southwestern Athletic Conference,1226
+2020,13,Arkansas State,Sun Belt Conference,1596
+2020,15,Army,Patriot League,1529
+2020,16,Auburn,Southeastern Conference,1949
+2020,17,Austin Peay,Ohio Valley Conference,1828
+2020,19,Ball State,Mid-American Conference,1870
+2020,20,Baylor,Big 12 Conference,2052
+2020,22,Belmont,Ohio Valley Conference,1966
+2020,23,Bethune-Cookman,Mid-Eastern Athletic Conference,1603
+2020,24,Binghamton,America East Conference,1444
+2020,25,Boise State,Mountain West Conference,1901
+2020,26,Boston College,Atlantic Coast Conference,1494
+2020,27,Boston University,Patriot League,1741
+2020,28,Bowling Green,Mid-American Conference,1717
+2020,29,Bradley,Missouri Valley Conference,1833
+2020,30,Brown,Ivy League,1705
+2020,31,Bryant,Northeast Conference,1624
+2020,32,Bucknell,Patriot League,1572
+2020,33,Buffalo,Mid-American Conference,1764
+2020,34,Butler,Big East Conference,1923
+2020,18,BYU,West Coast Conference,2138
+2020,40,California,Pac-12 Conference,1637
+2020,39,California Baptist,Western Athletic Conference,1774
+2020,35,Cal Poly,Big West Conference,1483
+2020,36,Cal State Bakersfield,Western Athletic Conference,1613
+2020,37,Cal State Fullerton,Big West Conference,1594
+2020,38,Cal State Northridge,Big West Conference,1642
+2020,41,Campbell,Big South Conference,1627
+2020,42,Canisius,Metro Atlantic Athletic Conference,1448
+2020,43,Central Arkansas,Southland Conference,1590
+2020,44,Central Connecticut,Northeast Conference,1333
+2020,45,Central Michigan,Mid-American Conference,1614
+2020,46,Charleston,Coastal Athletic Association,1648
+2020,47,Charleston Southern,Big South Conference,1515
+2020,48,Charlotte,Conference USA,1701
+2020,49,Chattanooga,Southern Conference,1994
+2020,50,Chicago State,Western Athletic Conference,1130
+2020,51,Cincinnati,American Athletic Conference,1964
+2020,52,Clemson,Atlantic Coast Conference,1849
+2020,53,Cleveland State,Horizon League,1482
+2020,54,Coastal Carolina,Sun Belt Conference,1695
+2020,55,Colgate,Patriot League,1841
+2020,56,Colorado,Pac-12 Conference,1835
+2020,57,Colorado State,Mountain West Conference,1801
+2020,58,Columbia,Ivy League,1490
+2020,59,Coppin State,Mid-Eastern Athletic Conference,1422
+2020,60,Cornell,Ivy League,1638
+2020,61,Creighton,Big East Conference,2052
+2020,62,Dartmouth,Ivy League,1716
+2020,63,Davidson,Atlantic 10 Conference,1898
+2020,64,Dayton,Atlantic 10 Conference,2091
+2020,66,Delaware,Coastal Athletic Association,1713
+2020,67,Delaware State,Mid-Eastern Athletic Conference,1373
+2020,68,Denver,Summit League,1515
+2020,65,DePaul,Big East Conference,1655
+2020,69,Detroit Mercy,Horizon League,1472
+2020,70,Drake,Missouri Valley Conference,1714
+2020,71,Drexel,Coastal Athletic Association,1550
+2020,72,Duke,Atlantic Coast Conference,2040
+2020,73,Duquesne,Atlantic 10 Conference,1759
+2020,74,East Carolina,American Athletic Conference,1551
+2020,77,Eastern Illinois,Ohio Valley Conference,1750
+2020,78,Eastern Kentucky,Ohio Valley Conference,1695
+2020,79,Eastern Michigan,Mid-American Conference,1644
+2020,80,Eastern Washington,Big Sky Conference,1935
+2020,75,East Tennessee State,Southern Conference,2162
+2020,81,Elon,Coastal Athletic Association,1556
+2020,82,Evansville,Missouri Valley Conference,1459
+2020,83,Fairfield,Metro Atlantic Athletic Conference,1363
+2020,84,Fairleigh Dickinson,Northeast Conference,1599
+2020,87,Florida,Southeastern Conference,1966
+2020,85,Florida A&M,Mid-Eastern Athletic Conference,1484
+2020,86,Florida Atlantic,Conference USA,1733
+2020,88,Florida Gulf Coast,ASUN Conference,1588
+2020,89,Florida International,Conference USA,1783
+2020,90,Florida State,Atlantic Coast Conference,1994
+2020,91,Fordham,Atlantic 10 Conference,1563
+2020,92,Fresno State,Mountain West Conference,1673
+2020,93,Furman,Southern Conference,2031
+2020,94,Gardner-Webb,Big South Conference,1751
+2020,95,George Mason,Atlantic 10 Conference,1609
+2020,97,Georgetown,Big East Conference,1752
+2020,96,George Washington,Atlantic 10 Conference,1418
+2020,98,Georgia,Southeastern Conference,1747
+2020,99,Georgia Southern,Sun Belt Conference,1917
+2020,100,Georgia State,Sun Belt Conference,1767
+2020,101,Georgia Tech,Atlantic Coast Conference,1886
+2020,102,Gonzaga,West Coast Conference,2241
+2020,103,Grambling,Southwestern Athletic Conference,1504
+2020,104,Grand Canyon,Western Athletic Conference,1587
+2020,105,Green Bay,Horizon League,1696
+2020,106,Hampton,Big South Conference,1640
+2020,363,Hartford,America East Conference,1659
+2020,107,Harvard,Ivy League,1834
+2020,108,Hawai'i,Big West Conference,1655
+2020,109,High Point,Big South Conference,1441
+2020,110,Hofstra,Coastal Athletic Association,1872
+2020,111,Holy Cross,Patriot League,1196
+2020,113,Houston,American Athletic Conference,2079
+2020,112,Houston Christian,Southland Conference,1413
+2020,114,Howard,Mid-Eastern Athletic Conference,1284
+2020,117,Idaho,Big Sky Conference,1380
+2020,116,Idaho State,Big Sky Conference,1580
+2020,118,Illinois,Big Ten Conference,2000
+2020,119,Illinois State,Missouri Valley Conference,1599
+2020,120,Incarnate Word,Southland Conference,1375
+2020,121,Indiana,Big Ten Conference,1976
+2020,122,Indiana State,Missouri Valley Conference,1726
+2020,123,Iona,Metro Atlantic Athletic Conference,1628
+2020,124,Iowa,Big Ten Conference,1972
+2020,125,Iowa State,Big 12 Conference,1717
+2020,115,IU Indianapolis,Horizon League,1371
+2020,126,Jackson State,Southwestern Athletic Conference,1640
+2020,127,Jacksonville,ASUN Conference,1610
+2020,128,Jacksonville State,Ohio Valley Conference,1630
+2020,129,James Madison,Coastal Athletic Association,1442
+2020,131,Kansas,Big 12 Conference,2173
+2020,130,Kansas City,Western Athletic Conference,1760
+2020,132,Kansas State,Big 12 Conference,1792
+2020,133,Kennesaw State,ASUN Conference,1151
+2020,134,Kent State,Mid-American Conference,1800
+2020,135,Kentucky,Southeastern Conference,1961
+2020,138,Lafayette,Patriot League,1541
+2020,139,Lamar,Southland Conference,1727
+2020,137,La Salle,Atlantic 10 Conference,1533
+2020,141,Lehigh,Patriot League,1486
+2020,142,Liberty,ASUN Conference,1872
+2020,143,Lipscomb,ASUN Conference,1648
+2020,144,Little Rock,Sun Belt Conference,1793
+2020,145,Long Beach State,Big West Conference,1466
+2020,146,Long Island University,Northeast Conference,1579
+2020,147,Longwood,Big South Conference,1480
+2020,148,Louisiana,Sun Belt Conference,1609
+2020,149,Louisiana Tech,Conference USA,1927
+2020,150,Louisville,Atlantic Coast Conference,1973
+2020,151,Loyola Chicago,Missouri Valley Conference,1804
+2020,152,Loyola Maryland,Patriot League,1542
+2020,153,Loyola Marymount,West Coast Conference,1609
+2020,136,LSU,Southeastern Conference,1959
+2020,154,Maine,America East Conference,1605
+2020,155,Manhattan,Metro Atlantic Athletic Conference,1450
+2020,156,Marist,Metro Atlantic Athletic Conference,1391
+2020,157,Marquette,Big East Conference,1933
+2020,158,Marshall,Conference USA,1811
+2020,160,Maryland,Big Ten Conference,2035
+2020,159,Maryland Eastern Shore,Mid-Eastern Athletic Conference,1251
+2020,161,Massachusetts,Atlantic 10 Conference,1608
+2020,162,McNeese,Southland Conference,1600
+2020,163,Memphis,American Athletic Conference,1890
+2020,164,Mercer,Southern Conference,1888
+2020,166,Merrimack,Northeast Conference,1667
+2020,168,Miami,Atlantic Coast Conference,1738
+2020,167,Miami (OH),Mid-American Conference,1747
+2020,170,Michigan,Big Ten Conference,2051
+2020,169,Michigan State,Big Ten Conference,2168
+2020,171,Middle Tennessee,Conference USA,1543
+2020,172,Milwaukee,Horizon League,1583
+2020,173,Minnesota,Big Ten Conference,2049
+2020,174,Mississippi State,Southeastern Conference,1920
+2020,175,Mississippi Valley State,Southwestern Athletic Conference,1124
+2020,177,Missouri,Southeastern Conference,1824
+2020,176,Missouri State,Missouri Valley Conference,1891
+2020,178,Monmouth,Metro Atlantic Athletic Conference,1599
+2020,179,Montana,Big Sky Conference,1860
+2020,180,Montana State,Big Sky Conference,1640
+2020,181,Morehead State,Ohio Valley Conference,1576
+2020,182,Morgan State,Mid-Eastern Athletic Conference,1473
+2020,183,Mount St. Mary's,Northeast Conference,1542
+2020,184,Murray State,Ohio Valley Conference,1949
+2020,187,Navy,Patriot League,1528
+2020,185,NC State,Atlantic Coast Conference,1893
+2020,188,Nebraska,Big Ten Conference,1545
+2020,189,Nevada,Mountain West Conference,1902
+2020,190,New Hampshire,America East Conference,1643
+2020,191,New Mexico,Mountain West Conference,1693
+2020,192,New Mexico State,Western Athletic Conference,2040
+2020,193,New Orleans,Southland Conference,1494
+2020,194,Niagara,Metro Atlantic Athletic Conference,1442
+2020,195,Nicholls,Southland Conference,1815
+2020,186,NJIT,ASUN Conference,1559
+2020,196,Norfolk State,Mid-Eastern Athletic Conference,1655
+2020,197,North Alabama,ASUN Conference,1572
+2020,200,North Carolina,Atlantic Coast Conference,1798
+2020,198,North Carolina A&T,Mid-Eastern Athletic Conference,1629
+2020,199,North Carolina Central,Mid-Eastern Athletic Conference,1673
+2020,201,North Dakota,Summit League,1661
+2020,202,North Dakota State,Summit League,1976
+2020,205,Northeastern,Coastal Athletic Association,1755
+2020,206,Northern Arizona,Big Sky Conference,1676
+2020,207,Northern Colorado,Big Sky Conference,2026
+2020,208,Northern Illinois,Mid-American Conference,1729
+2020,209,Northern Iowa,Missouri Valley Conference,1888
+2020,210,Northern Kentucky,Horizon League,1775
+2020,203,North Florida,ASUN Conference,1766
+2020,204,North Texas,Conference USA,1918
+2020,212,Northwestern,Big Ten Conference,1724
+2020,211,Northwestern State,Southland Conference,1698
+2020,213,Notre Dame,Atlantic Coast Conference,1838
+2020,214,Oakland,Horizon League,1608
+2020,215,Ohio,Mid-American Conference,1805
+2020,216,Ohio State,Big Ten Conference,2076
+2020,217,Oklahoma,Big 12 Conference,1978
+2020,218,Oklahoma State,Big 12 Conference,1936
+2020,219,Old Dominion,Conference USA,1744
+2020,220,Ole Miss,Southeastern Conference,1714
+2020,221,Omaha,Summit League,1575
+2020,222,Oral Roberts,Summit League,1905
+2020,223,Oregon,Pac-12 Conference,2000
+2020,224,Oregon State,Pac-12 Conference,1766
+2020,225,Pacific,West Coast Conference,1778
+2020,226,Penn State,Big Ten Conference,1961
+2020,227,Pennsylvania,Ivy League,1784
+2020,228,Pepperdine,West Coast Conference,1725
+2020,229,Pittsburgh,Atlantic Coast Conference,1654
+2020,230,Portland,West Coast Conference,1434
+2020,231,Portland State,Big Sky Conference,1813
+2020,232,Prairie View A&M,Southwestern Athletic Conference,1597
+2020,233,Presbyterian,Big South Conference,1441
+2020,234,Princeton,Ivy League,1858
+2020,235,Providence,Big East Conference,2009
+2020,236,Purdue,Big Ten Conference,2037
+2020,237,Purdue Fort Wayne,Summit League,1599
+2020,238,Quinnipiac,Metro Atlantic Athletic Conference,1484
+2020,239,Radford,Big South Conference,1707
+2020,240,Rhode Island,Atlantic 10 Conference,1778
+2020,241,Rice,Conference USA,1730
+2020,242,Richmond,Atlantic 10 Conference,1976
+2020,243,Rider,Metro Atlantic Athletic Conference,1638
+2020,244,Robert Morris,Northeast Conference,1759
+2020,245,Rutgers,Big Ten Conference,2035
+2020,249,Sacramento State,Big Sky Conference,1780
+2020,250,Sacred Heart,Northeast Conference,1731
+2020,251,Saint Joseph's,Atlantic 10 Conference,1440
+2020,252,Saint Louis,Atlantic 10 Conference,1880
+2020,253,Saint Mary's,West Coast Conference,1928
+2020,254,Saint Peter's,Metro Atlantic Athletic Conference,1653
+2020,256,Samford,Southern Conference,1489
+2020,255,Sam Houston,Southland Conference,1681
+2020,258,San Diego,West Coast Conference,1484
+2020,257,San Diego State,Mountain West Conference,2113
+2020,259,San Francisco,West Coast Conference,1965
+2020,260,San José State,Mountain West Conference,1406
+2020,261,Santa Clara,West Coast Conference,1662
+2020,262,Seattle U,Western Athletic Conference,1741
+2020,246,SE Louisiana,Southland Conference,1407
+2020,263,Seton Hall,Big East Conference,1967
+2020,264,Siena,Metro Atlantic Athletic Conference,1751
+2020,247,SIU Edwardsville,Ohio Valley Conference,1515
+2020,248,SMU,American Athletic Conference,1756
+2020,265,South Alabama,Sun Belt Conference,1803
+2020,266,South Carolina,Southeastern Conference,1854
+2020,267,South Carolina State,Mid-Eastern Athletic Conference,1388
+2020,268,South Carolina Upstate,Big South Conference,1427
+2020,269,South Dakota,Summit League,1849
+2020,270,South Dakota State,Summit League,1868
+2020,272,Southeast Missouri State,Ohio Valley Conference,1421
+2020,274,Southern,Southwestern Athletic Conference,1701
+2020,273,Southern Illinois,Missouri Valley Conference,1648
+2020,275,Southern Miss,Conference USA,1516
+2020,276,Southern Utah,Big Sky Conference,1749
+2020,271,South Florida,American Athletic Conference,1761
+2020,281,Stanford,Pac-12 Conference,1826
+2020,277,St. Bonaventure,Atlantic 10 Conference,1653
+2020,282,Stephen F. Austin,Southland Conference,1962
+2020,283,Stetson,ASUN Conference,1559
+2020,364,St. Francis Brooklyn,Northeast Conference,1555
+2020,278,St. Francis (PA),Northeast Conference,1810
+2020,279,St. John's,Big East Conference,1858
+2020,285,Stony Brook,America East Conference,1596
+2020,286,Syracuse,Atlantic Coast Conference,1927
+2020,287,TCU,Big 12 Conference,1767
+2020,289,Temple,American Athletic Conference,1675
+2020,292,Tennessee,Southeastern Conference,1793
+2020,290,Tennessee State,Ohio Valley Conference,1612
+2020,291,Tennessee Tech,Ohio Valley Conference,1519
+2020,295,Texas,Big 12 Conference,1796
+2020,293,Texas A&M,Southeastern Conference,1749
+2020,294,Texas A&M-Corpus Christi,Southland Conference,1546
+2020,296,Texas Southern,Southwestern Athletic Conference,1515
+2020,297,Texas State,Sun Belt Conference,1925
+2020,298,Texas Tech,Big 12 Conference,2020
+2020,299,The Citadel,Southern Conference,1530
+2020,300,Toledo,Mid-American Conference,1745
+2020,301,Towson,Coastal Athletic Association,1715
+2020,302,Troy,Sun Belt Conference,1476
+2020,303,Tulane,American Athletic Conference,1591
+2020,304,Tulsa,American Athletic Conference,1819
+2020,305,UAB,Conference USA,1747
+2020,306,UAlbany,America East Conference,1488
+2020,307,UC Davis,Big West Conference,1756
+2020,312,UCF,American Athletic Conference,1789
+2020,308,UC Irvine,Big West Conference,1916
+2020,313,UCLA,Pac-12 Conference,1878
+2020,314,UConn,American Athletic Conference,1948
+2020,309,UC Riverside,Big West Conference,1695
+2020,311,UC Santa Barbara,Big West Conference,1783
+2020,315,UIC,Horizon League,1790
+2020,316,UL Monroe,Sun Belt Conference,1586
+2020,318,UMass Lowell,America East Conference,1582
+2020,317,UMBC,America East Conference,1648
+2020,319,UNC Asheville,Big South Conference,1540
+2020,320,UNC Greensboro,Southern Conference,2000
+2020,321,UNC Wilmington,Coastal Athletic Association,1494
+2020,322,UNLV,Mountain West Conference,1896
+2020,323,USC,Pac-12 Conference,1862
+2020,331,Utah,Pac-12 Conference,1715
+2020,329,Utah State,Mountain West Conference,2026
+2020,332,Utah Valley,Western Athletic Conference,1623
+2020,324,UT Arlington,Sun Belt Conference,1721
+2020,327,UTEP,Conference USA,1685
+2020,325,UT Martin,Ohio Valley Conference,1421
+2020,326,UT Rio Grande Valley,Western Athletic Conference,1662
+2020,328,UTSA,Conference USA,1667
+2020,335,Valparaiso,Missouri Valley Conference,1756
+2020,336,Vanderbilt,Southeastern Conference,1659
+2020,333,VCU,Atlantic 10 Conference,1779
+2020,337,Vermont,America East Conference,1942
+2020,338,Villanova,Big East Conference,2020
+2020,339,Virginia,Atlantic Coast Conference,1851
+2020,340,Virginia Tech,Atlantic Coast Conference,1677
+2020,334,VMI,Southern Conference,1769
+2020,341,Wagner,Northeast Conference,1360
+2020,342,Wake Forest,Atlantic Coast Conference,1724
+2020,343,Washington,Pac-12 Conference,1881
+2020,344,Washington State,Pac-12 Conference,1719
+2020,345,Weber State,Big Sky Conference,1632
+2020,348,Western Carolina,Southern Conference,1880
+2020,349,Western Illinois,Summit League,1434
+2020,350,Western Kentucky,Conference USA,1858
+2020,351,Western Michigan,Mid-American Conference,1621
+2020,347,West Virginia,Big 12 Conference,1967
+2020,352,Wichita State,American Athletic Conference,1948
+2020,353,William & Mary,Coastal Athletic Association,1619
+2020,354,Winthrop,Big South Conference,1872
+2020,355,Wisconsin,Big Ten Conference,2026
+2020,356,Wofford,Southern Conference,1918
+2020,357,Wright State,Horizon League,1790
+2020,358,Wyoming,Mountain West Conference,1629
+2020,359,Xavier,Big East Conference,1867
+2020,360,Yale,Ivy League,1977
+2020,361,Youngstown State,Horizon League,1679

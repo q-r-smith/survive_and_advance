@@ -1,0 +1,304 @@
+Schemas:
+
+SRS
+[
+  {
+    "season": 0,
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "rating": 0
+  }
+]
+
+Adjusting off/deff ratings
+[
+  {
+    "season": 0,
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "offensiveRating": 0,
+    "defensiveRating": 0,
+    "netRating": 0,
+    "rankings": {
+      "net": 0,
+      "defense": 0,
+      "offense": 0
+    }
+  }
+]
+
+Roster
+[
+  {
+    "teamId": 0,
+    "teamSourceId": "string",
+    "team": "string",
+    "conference": "string",
+    "season": 0,
+    "players": [
+      {
+        "id": 0,
+        "sourceId": "string",
+        "name": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "jersey": "string",
+        "position": "string",
+        "height": 0,
+        "weight": 0,
+        "hometown": {
+          "countyFips": "string",
+          "longitude": 0,
+          "latitude": 0,
+          "country": "string",
+          "state": "string",
+          "city": "string"
+        },
+        "dateOfBirth": "2026-03-17",
+        "startSeason": 0,
+        "endSeason": 0
+      }
+    ]
+  }
+]
+
+Team Stats
+[
+  {
+    "season": 0,
+    "seasonLabel": "string",
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "games": 0,
+    "wins": 0,
+    "losses": 0,
+    "totalMinutes": 0,
+    "pace": 0,
+    "teamStats": {
+      "fieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "twoPointFieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "threePointFieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "freeThrows": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "rebounds": {
+        "total": 0,
+        "defensive": 0,
+        "offensive": 0
+      },
+      "turnovers": {
+        "teamTotal": 0,
+        "total": 0
+      },
+      "fouls": {
+        "flagrant": 0,
+        "technical": 0,
+        "total": 0
+      },
+      "points": {
+        "fastBreak": 0,
+        "offTurnovers": 0,
+        "inPaint": 0,
+        "total": 0
+      },
+      "fourFactors": {
+        "freeThrowRate": 0,
+        "offensiveReboundPct": 0,
+        "turnoverRatio": 0,
+        "effectiveFieldGoalPct": 0
+      },
+      "assists": 0,
+      "blocks": 0,
+      "steals": 0,
+      "possessions": 0,
+      "rating": 0,
+      "trueShooting": 0
+    },
+    "opponentStats": {
+      "fieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "twoPointFieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "threePointFieldGoals": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "freeThrows": {
+        "pct": 0,
+        "attempted": 0,
+        "made": 0
+      },
+      "rebounds": {
+        "total": 0,
+        "defensive": 0,
+        "offensive": 0
+      },
+      "turnovers": {
+        "teamTotal": 0,
+        "total": 0
+      },
+      "fouls": {
+        "flagrant": 0,
+        "technical": 0,
+        "total": 0
+      },
+      "points": {
+        "fastBreak": 0,
+        "offTurnovers": 0,
+        "inPaint": 0,
+        "total": 0
+      },
+      "fourFactors": {
+        "freeThrowRate": 0,
+        "offensiveReboundPct": 0,
+        "turnoverRatio": 0,
+        "effectiveFieldGoalPct": 0
+      },
+      "assists": 0,
+      "blocks": 0,
+      "steals": 0,
+      "possessions": 0,
+      "rating": 0,
+      "trueShooting": 0
+    }
+  }
+]
+
+Player Stats
+[
+  {
+    "season": 0,
+    "seasonLabel": "string",
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "athleteId": 0,
+    "athleteSourceId": "string",
+    "name": "string",
+    "position": "string",
+    "games": 0,
+    "starts": 0,
+    "minutes": 0,
+    "points": 0,
+    "turnovers": 0,
+    "fouls": 0,
+    "assists": 0,
+    "steals": 0,
+    "blocks": 0,
+    "usage": 0,
+    "offensiveRating": 0,
+    "defensiveRating": 0,
+    "netRating": 0,
+    "PORPAG": 0,
+    "effectiveFieldGoalPct": 0,
+    "trueShootingPct": 0,
+    "assistsTurnoverRatio": 0,
+    "freeThrowRate": 0,
+    "offensiveReboundPct": 0,
+    "fieldGoals": {
+      "pct": 0,
+      "attempted": 0,
+      "made": 0
+    },
+    "twoPointFieldGoals": {
+      "pct": 0,
+      "attempted": 0,
+      "made": 0
+    },
+    "threePointFieldGoals": {
+      "pct": 0,
+      "attempted": 0,
+      "made": 0
+    },
+    "freeThrows": {
+      "pct": 0,
+      "attempted": 0,
+      "made": 0
+    },
+    "rebounds": {
+      "total": 0,
+      "defensive": 0,
+      "offensive": 0
+    },
+    "winShares": {
+      "totalPer40": 0,
+      "total": 0,
+      "defensive": 0,
+      "offensive": 0
+    }
+  }
+]
+
+Games
+
+[
+  {
+    "id": 0,
+    "sourceId": "string",
+    "seasonLabel": "string",
+    "season": 0,
+    "seasonType": "postseason",
+    "startDate": "2026-03-17T01:04:38.060Z",
+    "startTimeTbd": true,
+    "neutralSite": true,
+    "conferenceGame": true,
+    "gameType": "string",
+    "tournament": "string",
+    "gameNotes": "string",
+    "status": "scheduled",
+    "attendance": 0,
+    "homeTeamId": 0,
+    "homeTeam": "string",
+    "homeConferenceId": 0,
+    "homeConference": "string",
+    "homeSeed": 0,
+    "homePoints": 0,
+    "homePeriodPoints": [
+      0
+    ],
+    "homeWinner": true,
+    "homeTeamEloStart": 0,
+    "homeTeamEloEnd": 0,
+    "awayTeamId": 0,
+    "awayTeam": "string",
+    "awayConferenceId": 0,
+    "awayConference": "string",
+    "awaySeed": 0,
+    "awayPoints": 0,
+    "awayPeriodPoints": [
+      0
+    ],
+    "awayWinner": true,
+    "awayTeamEloStart": 0,
+    "awayTeamEloEnd": 0,
+    "excitement": 0,
+    "venueId": 0,
+    "venue": "string",
+    "city": "string",
+    "state": "string"
+  }
+]
