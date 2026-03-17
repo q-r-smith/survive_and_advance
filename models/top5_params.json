@@ -1,8 +1,44 @@
 [
   {
     "rank": 1,
-    "cv_brier": 0.151759,
-    "cv_brier_std": 0.001013,
+    "cv_brier": 0.18881,
+    "cv_brier_std": 0.000321,
+    "val_brier": 0.189497,
+    "val_accuracy": 0.694872,
+    "params": {
+      "learning_rate": 0.02715505631033758,
+      "max_iter": 323,
+      "max_depth": 3,
+      "min_samples_leaf": 15,
+      "l2_regularization": 0.26788734203737924,
+      "max_bins": 127,
+      "loss": "log_loss",
+      "random_state": 42
+    }
+  },
+  {
+    "rank": 2,
+    "cv_brier": 0.188857,
+    "cv_brier_std": 0.000337,
+    "val_brier": 0.189439,
+    "val_accuracy": 0.693518,
+    "params": {
+      "learning_rate": 0.012970917280826846,
+      "max_iter": 847,
+      "max_depth": 3,
+      "min_samples_leaf": 33,
+      "l2_regularization": 0.08263346953150125,
+      "max_bins": 127,
+      "loss": "log_loss",
+      "random_state": 42
+    }
+  },
+  {
+    "rank": 3,
+    "cv_brier": 0.188919,
+    "cv_brier_std": 0.000463,
+    "val_brier": 0.189311,
+    "val_accuracy": 0.695549,
     "params": {
       "learning_rate": 0.011320904800926235,
       "max_iter": 848,
@@ -15,9 +51,11 @@
     }
   },
   {
-    "rank": 2,
-    "cv_brier": 0.151772,
-    "cv_brier_std": 0.000991,
+    "rank": 4,
+    "cv_brier": 0.18897,
+    "cv_brier_std": 0.000497,
+    "val_brier": 0.189564,
+    "val_accuracy": 0.695718,
     "params": {
       "learning_rate": 0.013911053916202464,
       "max_iter": 613,
@@ -30,45 +68,17 @@
     }
   },
   {
-    "rank": 3,
-    "cv_brier": 0.15179,
-    "cv_brier_std": 0.001012,
-    "params": {
-      "learning_rate": 0.014381860757868993,
-      "max_iter": 710,
-      "max_depth": 5,
-      "min_samples_leaf": 51,
-      "l2_regularization": 0.003533152609858703,
-      "max_bins": 127,
-      "loss": "log_loss",
-      "random_state": 42
-    }
-  },
-  {
-    "rank": 4,
-    "cv_brier": 0.151859,
-    "cv_brier_std": 0.001078,
+    "rank": 5,
+    "cv_brier": 0.189012,
+    "cv_brier_std": 0.00052,
+    "val_brier": 0.189479,
+    "val_accuracy": 0.695211,
     "params": {
       "learning_rate": 0.028995234005420548,
       "max_iter": 299,
       "max_depth": 7,
       "min_samples_leaf": 49,
       "l2_regularization": 0.22291637642679557,
-      "max_bins": 127,
-      "loss": "log_loss",
-      "random_state": 42
-    }
-  },
-  {
-    "rank": 5,
-    "cv_brier": 0.151864,
-    "cv_brier_std": 0.001043,
-    "params": {
-      "learning_rate": 0.014829634081378086,
-      "max_iter": 774,
-      "max_depth": 5,
-      "min_samples_leaf": 41,
-      "l2_regularization": 0.21377050917927481,
       "max_bins": 127,
       "loss": "log_loss",
       "random_state": 42
