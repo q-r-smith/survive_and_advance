@@ -57,13 +57,16 @@ class LogisticPredictor:
         self.feature_cols = None
         self.medians_: pd.Series = None
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
+    def fit(self, X: pd.DataFrame, y: pd.Series, sample_weight=None):
         self.feature_cols = [c for c in X.columns if c not in NON_FEATURE_COLS]
         Xf = X[self.feature_cols]
         # Store training-set medians for predict-time imputation
         self.medians_ = Xf.median()
         X_clean = Xf.fillna(self.medians_)
-        self.pipeline.fit(X_clean, y)
+        if sample_weight is not None:
+            self.pipeline.fit(X_clean, y, clf__sample_weight=sample_weight)
+        else:
+            self.pipeline.fit(X_clean, y)
         return self
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:

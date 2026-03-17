@@ -376,23 +376,32 @@ def build_matchup_features(team_a_feats, team_b_feats, neutral_site=False, seed_
 def build_training_set(games_df, team_features_by_season):
     """
     Build (X, y) across all seasons and game types.
-    y=1 means home team won. season_type column preserved for filtering at train time.
+    y=1 means home team won. season_type, game_type, conf_game columns preserved
+    for training-tier filtering at train time (not used as model features).
 
     Feature vintage is chosen to prevent look-ahead leakage:
-      - Regular season games  → prior season's end-of-season features
-        (current-season stats are still accumulating during these games)
-      - Postseason games      → current season's features
-        (regular season is fully complete before the tournament begins)
+      - Regular season games       → prior season's end-of-season features
+      - Postseason games           → current season's features
+      - Conference tournaments     → current season's features
+        (conference tournaments occur after the regular season is complete, just
+         like the NCAA tournament, so current-season stats are fully available.
+         They carry seasonType=="regular" in the raw data, so we detect them via
+         gameType=="TRNMNT" and conferenceGame==True.)
 
     This mirrors deployment: tournament predictions use end-of-regular-season stats.
     """
     rows, labels = [], []
 
     for _, game in games_df.iterrows():
-        season = game["season"]
+        season      = game["season"]
         season_type = game.get("seasonType", "regular")
+        game_type   = game.get("gameType", "STD")
+        conf_game   = bool(game.get("conferenceGame", False))
 
-        feat_season = season if season_type != "regular" else season - 1
+        # Conference tournament games are labeled seasonType=="regular" but happen
+        # after the regular season ends → use current-season features.
+        is_conf_tourn = (game_type == "TRNMNT" and conf_game)
+        feat_season   = season if (season_type != "regular" or is_conf_tourn) else season - 1
 
         if feat_season not in team_features_by_season:
             continue
@@ -410,7 +419,9 @@ def build_training_set(games_df, team_features_by_season):
             seed_b=game.get("awaySeed") or None,
         )
         matchup["season_type"] = season_type
-        matchup["season"] = season
+        matchup["season"]      = season
+        matchup["game_type"]   = game_type
+        matchup["conf_game"]   = conf_game
         rows.append(matchup)
         labels.append(1 if game["homeWinner"] else 0)
 

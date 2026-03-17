@@ -1,11 +1,12 @@
 {
-  "timestamp": "2026-03-17T18:37:32",
+  "timestamp": "2026-03-17T18:55:17",
   "flags": [
     "--all"
   ],
   "data": {
-    "train_rows": 55854,
+    "train_rows": 55866,
     "train_post_rows": 1131,
+    "train_hs_rows": 4003,
     "val_rows": 5909,
     "val_post_rows": 121,
     "features": [
@@ -28,6 +29,19 @@
       "diff_close_game_pct",
       "neutral_site",
       "seed_diff"
+    ],
+    "histgbt_trimmed": [
+      "diff_adj_def_rating",
+      "diff_efficiency_ratio",
+      "diff_upset_propensity",
+      "diff_pace",
+      "diff_elo",
+      "diff_srs",
+      "diff_star_power",
+      "diff_hot_streak",
+      "diff_conf_strength",
+      "neutral_site",
+      "seed_diff"
     ]
   },
   "histgb_params": {
@@ -43,8 +57,8 @@
   "models": [
     {
       "model": "HistGBT",
-      "train_regime": "all 2015\u201324",
-      "train_rows": 55854,
+      "train_regime": "full | all games",
+      "train_rows": 55866,
       "params": {
         "learning_rate": 0.02715505631033758,
         "max_iter": 323,
@@ -57,144 +71,556 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.186411,
-          "accuracy": 0.707255,
-          "log_loss": 0.545737,
-          "n": 55854
+          "brier": 0.183576,
+          "accuracy": 0.714603,
+          "log_loss": 0.53925,
+          "n": 55866
         },
         "val_all": {
-          "brier": 0.189646,
-          "accuracy": 0.694534,
-          "log_loss": 0.55117,
+          "brier": 0.186867,
+          "accuracy": 0.701134,
+          "log_loss": 0.545065,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.182301,
-          "accuracy": 0.702479,
-          "log_loss": 0.537668,
+          "brier": 0.171171,
+          "accuracy": 0.752066,
+          "log_loss": 0.51231,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_srs",
-          "importance": 0.015143,
-          "importance_std": 0.001155,
+          "importance": 0.012409,
+          "importance_std": 0.000914,
           "rank": 1
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.009235,
-          "importance_std": 0.000868,
+          "importance": 0.009589,
+          "importance_std": 0.00087,
           "rank": 2
         },
         {
           "feature": "diff_elo",
-          "importance": 0.005717,
-          "importance_std": 0.000641,
+          "importance": 0.008259,
+          "importance_std": 0.000876,
           "rank": 3
         },
         {
           "feature": "neutral_site",
-          "importance": 0.000857,
-          "importance_std": 0.000233,
+          "importance": 0.002774,
+          "importance_std": 0.000476,
           "rank": 4
         },
         {
-          "feature": "diff_efficiency_ratio",
-          "importance": 0.000402,
-          "importance_std": 0.000131,
+          "feature": "diff_hot_streak",
+          "importance": 0.00173,
+          "importance_std": 0.000245,
           "rank": 5
         },
         {
-          "feature": "diff_hot_streak",
-          "importance": 0.000271,
-          "importance_std": 9.8e-05,
+          "feature": "diff_star_power",
+          "importance": 0.000324,
+          "importance_std": 0.000127,
           "rank": 6
         },
         {
-          "feature": "diff_star_power",
-          "importance": 0.000267,
-          "importance_std": 0.000136,
+          "feature": "diff_net_rating",
+          "importance": 0.000194,
+          "importance_std": 9.2e-05,
           "rank": 7
         },
         {
-          "feature": "seed_diff",
-          "importance": 0.000153,
-          "importance_std": 4.8e-05,
+          "feature": "diff_efficiency_ratio",
+          "importance": 0.000111,
+          "importance_std": 0.000111,
           "rank": 8
         },
         {
           "feature": "diff_upset_propensity",
-          "importance": 0.00013,
-          "importance_std": 3.9e-05,
+          "importance": 4.8e-05,
+          "importance_std": 4.1e-05,
           "rank": 9
         },
         {
-          "feature": "diff_non_conf_sos",
-          "importance": 6.5e-05,
-          "importance_std": 5.3e-05,
+          "feature": "diff_close_game_pct",
+          "importance": 3.2e-05,
+          "importance_std": 2.7e-05,
           "rank": 10
         },
         {
-          "feature": "diff_adj_def_rank",
-          "importance": 3.1e-05,
-          "importance_std": 6.7e-05,
+          "feature": "diff_pace",
+          "importance": 3e-05,
+          "importance_std": 5.2e-05,
           "rank": 11
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": 2.8e-05,
-          "importance_std": 2.7e-05,
+          "feature": "diff_road_win_pct",
+          "importance": 2.5e-05,
+          "importance_std": 4e-05,
           "rank": 12
         },
         {
-          "feature": "diff_pace",
-          "importance": 1.9e-05,
-          "importance_std": 4.3e-05,
+          "feature": "diff_non_conf_sos",
+          "importance": 2e-05,
+          "importance_std": 5.2e-05,
           "rank": 13
         },
         {
-          "feature": "diff_close_game_pct",
-          "importance": 1.9e-05,
+          "feature": "diff_adj_off_rating",
+          "importance": 1.3e-05,
           "importance_std": 2.3e-05,
           "rank": 14
         },
         {
-          "feature": "diff_road_win_pct",
-          "importance": 1.5e-05,
-          "importance_std": 3.7e-05,
+          "feature": "seed_diff",
+          "importance": 1e-05,
+          "importance_std": 9e-06,
           "rank": 15
         },
         {
           "feature": "diff_adj_off_rank",
-          "importance": -9e-06,
-          "importance_std": 4.5e-05,
+          "importance": 1e-06,
+          "importance_std": 4.2e-05,
           "rank": 16
         },
         {
-          "feature": "diff_adj_off_rating",
-          "importance": -1.8e-05,
-          "importance_std": 4.1e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": -8e-06,
+          "importance_std": 3.4e-05,
           "rank": 17
         },
         {
-          "feature": "diff_net_rating",
-          "importance": -2.1e-05,
-          "importance_std": 2.5e-05,
+          "feature": "diff_adj_def_rank",
+          "importance": -2.2e-05,
+          "importance_std": 7.4e-05,
           "rank": 18
         },
         {
           "feature": "diff_experience",
-          "importance": -4.1e-05,
-          "importance_std": 6.2e-05,
+          "importance": -8.6e-05,
+          "importance_std": 4.6e-05,
           "rank": 19
         }
       ]
     },
     {
       "model": "HistGBT",
-      "train_regime": "post 2015\u201324",
+      "train_regime": "trimmed | all games",
+      "train_rows": 55866,
+      "params": {
+        "learning_rate": 0.02715505631033758,
+        "max_iter": 323,
+        "max_depth": 3,
+        "min_samples_leaf": 15,
+        "l2_regularization": 0.26788734203737924,
+        "max_bins": 127,
+        "loss": "log_loss",
+        "random_state": 42
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.184285,
+          "accuracy": 0.712509,
+          "log_loss": 0.540982,
+          "n": 55866
+        },
+        "val_all": {
+          "brier": 0.186865,
+          "accuracy": 0.701811,
+          "log_loss": 0.545113,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.168624,
+          "accuracy": 0.735537,
+          "log_loss": 0.504781,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_srs",
+          "importance": 0.012022,
+          "importance_std": 0.000934,
+          "rank": 1
+        },
+        {
+          "feature": "diff_conf_strength",
+          "importance": 0.009819,
+          "importance_std": 0.000857,
+          "rank": 2
+        },
+        {
+          "feature": "diff_elo",
+          "importance": 0.008476,
+          "importance_std": 0.000868,
+          "rank": 3
+        },
+        {
+          "feature": "neutral_site",
+          "importance": 0.002609,
+          "importance_std": 0.000484,
+          "rank": 4
+        },
+        {
+          "feature": "diff_hot_streak",
+          "importance": 0.002215,
+          "importance_std": 0.000348,
+          "rank": 5
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "importance": 0.000789,
+          "importance_std": 0.000248,
+          "rank": 6
+        },
+        {
+          "feature": "diff_star_power",
+          "importance": 0.000332,
+          "importance_std": 0.000133,
+          "rank": 7
+        },
+        {
+          "feature": "seed_diff",
+          "importance": 5.2e-05,
+          "importance_std": 1.5e-05,
+          "rank": 8
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "importance": 4.7e-05,
+          "importance_std": 2.4e-05,
+          "rank": 9
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "importance": 4.4e-05,
+          "importance_std": 3.2e-05,
+          "rank": 10
+        },
+        {
+          "feature": "diff_pace",
+          "importance": 2.6e-05,
+          "importance_std": 6.3e-05,
+          "rank": 11
+        }
+      ]
+    },
+    {
+      "model": "HistGBT",
+      "train_regime": "trimmed | all+weighted",
+      "train_rows": 55866,
+      "params": {
+        "learning_rate": 0.02715505631033758,
+        "max_iter": 323,
+        "max_depth": 3,
+        "min_samples_leaf": 15,
+        "l2_regularization": 0.26788734203737924,
+        "max_bins": 127,
+        "loss": "log_loss",
+        "random_state": 42
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.185622,
+          "accuracy": 0.710289,
+          "log_loss": 0.544714,
+          "n": 55866
+        },
+        "val_all": {
+          "brier": 0.189252,
+          "accuracy": 0.70198,
+          "log_loss": 0.551587,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.1592,
+          "accuracy": 0.743802,
+          "log_loss": 0.473257,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_elo",
+          "importance": 0.022436,
+          "importance_std": 0.001638,
+          "rank": 1
+        },
+        {
+          "feature": "diff_conf_strength",
+          "importance": 0.009658,
+          "importance_std": 0.001136,
+          "rank": 2
+        },
+        {
+          "feature": "neutral_site",
+          "importance": 0.003161,
+          "importance_std": 0.000571,
+          "rank": 3
+        },
+        {
+          "feature": "diff_srs",
+          "importance": 0.002857,
+          "importance_std": 0.000436,
+          "rank": 4
+        },
+        {
+          "feature": "diff_hot_streak",
+          "importance": 0.00227,
+          "importance_std": 0.000467,
+          "rank": 5
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "importance": 0.000209,
+          "importance_std": 0.000132,
+          "rank": 6
+        },
+        {
+          "feature": "diff_star_power",
+          "importance": 0.000129,
+          "importance_std": 4.2e-05,
+          "rank": 7
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "importance": 2.3e-05,
+          "importance_std": 0.000195,
+          "rank": 8
+        },
+        {
+          "feature": "seed_diff",
+          "importance": -2.3e-05,
+          "importance_std": 3.5e-05,
+          "rank": 9
+        },
+        {
+          "feature": "diff_pace",
+          "importance": -2.5e-05,
+          "importance_std": 4.8e-05,
+          "rank": 10
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "importance": -0.000104,
+          "importance_std": 0.000103,
+          "rank": 11
+        }
+      ]
+    },
+    {
+      "model": "HistGBT",
+      "train_regime": "trimmed | post+conf",
+      "train_rows": 4003,
+      "params": {
+        "learning_rate": 0.02715505631033758,
+        "max_iter": 323,
+        "max_depth": 3,
+        "min_samples_leaf": 15,
+        "l2_regularization": 0.26788734203737924,
+        "max_bins": 127,
+        "loss": "log_loss",
+        "random_state": 42
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.112476,
+          "accuracy": 0.835873,
+          "log_loss": 0.353396,
+          "n": 4003
+        },
+        "val_all": {
+          "brier": 0.236298,
+          "accuracy": 0.667456,
+          "log_loss": 0.752093,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.147714,
+          "accuracy": 0.801653,
+          "log_loss": 0.44466,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_elo",
+          "importance": 0.038628,
+          "importance_std": 0.003135,
+          "rank": 1
+        },
+        {
+          "feature": "diff_conf_strength",
+          "importance": 0.006574,
+          "importance_std": 0.001543,
+          "rank": 2
+        },
+        {
+          "feature": "diff_srs",
+          "importance": 0.006248,
+          "importance_std": 0.000499,
+          "rank": 3
+        },
+        {
+          "feature": "neutral_site",
+          "importance": 0.00138,
+          "importance_std": 0.000232,
+          "rank": 4
+        },
+        {
+          "feature": "diff_hot_streak",
+          "importance": 0.001371,
+          "importance_std": 0.002142,
+          "rank": 5
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "importance": 0.001349,
+          "importance_std": 0.000216,
+          "rank": 6
+        },
+        {
+          "feature": "diff_pace",
+          "importance": 1.3e-05,
+          "importance_std": 0.000108,
+          "rank": 7
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "importance": -8.9e-05,
+          "importance_std": 5.1e-05,
+          "rank": 8
+        },
+        {
+          "feature": "seed_diff",
+          "importance": -9.4e-05,
+          "importance_std": 7.3e-05,
+          "rank": 9
+        },
+        {
+          "feature": "diff_star_power",
+          "importance": -0.000131,
+          "importance_std": 9.4e-05,
+          "rank": 10
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "importance": -0.001685,
+          "importance_std": 0.000211,
+          "rank": 11
+        }
+      ]
+    },
+    {
+      "model": "HistGBT",
+      "train_regime": "trimmed | post+conf+wtd",
+      "train_rows": 4003,
+      "params": {
+        "learning_rate": 0.02715505631033758,
+        "max_iter": 323,
+        "max_depth": 3,
+        "min_samples_leaf": 15,
+        "l2_regularization": 0.26788734203737924,
+        "max_bins": 127,
+        "loss": "log_loss",
+        "random_state": 42
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.11783,
+          "accuracy": 0.829378,
+          "log_loss": 0.370311,
+          "n": 4003
+        },
+        "val_all": {
+          "brier": 0.228329,
+          "accuracy": 0.678118,
+          "log_loss": 0.717323,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.15045,
+          "accuracy": 0.785124,
+          "log_loss": 0.451917,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_elo",
+          "importance": 0.07256,
+          "importance_std": 0.004461,
+          "rank": 1
+        },
+        {
+          "feature": "diff_conf_strength",
+          "importance": 0.00639,
+          "importance_std": 0.001398,
+          "rank": 2
+        },
+        {
+          "feature": "diff_srs",
+          "importance": 0.006019,
+          "importance_std": 0.000539,
+          "rank": 3
+        },
+        {
+          "feature": "neutral_site",
+          "importance": 0.001464,
+          "importance_std": 0.000246,
+          "rank": 4
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "importance": 0.000461,
+          "importance_std": 0.000162,
+          "rank": 5
+        },
+        {
+          "feature": "diff_pace",
+          "importance": 0.000145,
+          "importance_std": 8.4e-05,
+          "rank": 6
+        },
+        {
+          "feature": "seed_diff",
+          "importance": -2.6e-05,
+          "importance_std": 8.8e-05,
+          "rank": 7
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "importance": -0.0001,
+          "importance_std": 5.3e-05,
+          "rank": 8
+        },
+        {
+          "feature": "diff_star_power",
+          "importance": -0.000193,
+          "importance_std": 7.6e-05,
+          "rank": 9
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "importance": -0.001022,
+          "importance_std": 0.000436,
+          "rank": 10
+        },
+        {
+          "feature": "diff_hot_streak",
+          "importance": -0.003395,
+          "importance_std": 0.001124,
+          "rank": 11
+        }
+      ]
+    },
+    {
+      "model": "HistGBT",
+      "train_regime": "full | post only (NCAA)",
       "train_rows": 1131,
       "params": {
         "learning_rate": 0.02715505631033758,
@@ -214,9 +640,9 @@
           "n": 1131
         },
         "val_all": {
-          "brier": 0.211958,
-          "accuracy": 0.67778,
-          "log_loss": 0.615247,
+          "brier": 0.207643,
+          "accuracy": 0.684041,
+          "log_loss": 0.604628,
           "n": 5909
         },
         "val_post": {
@@ -229,269 +655,123 @@
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "importance": 0.090589,
-          "importance_std": 0.003842,
+          "importance": 0.095435,
+          "importance_std": 0.003831,
           "rank": 1
         },
         {
           "feature": "diff_hot_streak",
-          "importance": 0.007411,
-          "importance_std": 0.000395,
+          "importance": 0.006482,
+          "importance_std": 0.000422,
           "rank": 2
         },
         {
           "feature": "diff_road_win_pct",
-          "importance": 0.004513,
-          "importance_std": 0.000272,
+          "importance": 0.00447,
+          "importance_std": 0.000232,
           "rank": 3
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.000838,
-          "importance_std": 0.000499,
+          "importance": 0.001027,
+          "importance_std": 0.000492,
           "rank": 4
         },
         {
           "feature": "diff_experience",
-          "importance": 0.000116,
-          "importance_std": 4.3e-05,
+          "importance": 0.000129,
+          "importance_std": 5.3e-05,
           "rank": 5
         },
         {
-          "feature": "seed_diff",
-          "importance": 9.4e-05,
-          "importance_std": 3.2e-05,
+          "feature": "neutral_site",
+          "importance": 0.000129,
+          "importance_std": 5.1e-05,
           "rank": 6
         },
         {
           "feature": "diff_non_conf_sos",
-          "importance": 9.1e-05,
-          "importance_std": 4.1e-05,
+          "importance": 8.8e-05,
+          "importance_std": 5e-05,
           "rank": 7
         },
         {
-          "feature": "diff_pace",
-          "importance": 3.6e-05,
-          "importance_std": 4.6e-05,
+          "feature": "seed_diff",
+          "importance": 8.8e-05,
+          "importance_std": 3.4e-05,
           "rank": 8
         },
         {
-          "feature": "diff_star_power",
-          "importance": 2.6e-05,
-          "importance_std": 2.8e-05,
+          "feature": "diff_pace",
+          "importance": 3.8e-05,
+          "importance_std": 5e-05,
           "rank": 9
         },
         {
-          "feature": "neutral_site",
-          "importance": 1e-05,
-          "importance_std": 5.1e-05,
+          "feature": "diff_star_power",
+          "importance": 2.4e-05,
+          "importance_std": 2.3e-05,
           "rank": 10
         },
         {
           "feature": "diff_upset_propensity",
-          "importance": -1.2e-05,
-          "importance_std": 8.2e-05,
+          "importance": -7.5e-05,
+          "importance_std": 0.000117,
           "rank": 11
         },
         {
           "feature": "diff_adj_def_rating",
-          "importance": -0.000143,
+          "importance": -0.000126,
           "importance_std": 8.3e-05,
           "rank": 12
         },
         {
           "feature": "diff_net_rating",
-          "importance": -0.000143,
-          "importance_std": 1.8e-05,
+          "importance": -0.000127,
+          "importance_std": 1.7e-05,
           "rank": 13
         },
         {
           "feature": "diff_adj_def_rank",
-          "importance": -0.000232,
-          "importance_std": 0.000161,
+          "importance": -0.000142,
+          "importance_std": 0.000166,
           "rank": 14
         },
         {
           "feature": "diff_srs",
-          "importance": -0.000282,
-          "importance_std": 0.000261,
+          "importance": -0.000273,
+          "importance_std": 0.000249,
           "rank": 15
         },
         {
-          "feature": "diff_adj_off_rank",
-          "importance": -0.00058,
-          "importance_std": 0.000181,
-          "rank": 16
-        },
-        {
           "feature": "diff_close_game_pct",
-          "importance": -0.000585,
+          "importance": -0.000541,
           "importance_std": 0.000458,
-          "rank": 17
-        },
-        {
-          "feature": "diff_adj_off_rating",
-          "importance": -0.000903,
-          "importance_std": 0.000114,
-          "rank": 18
-        },
-        {
-          "feature": "diff_efficiency_ratio",
-          "importance": -0.001634,
-          "importance_std": 0.000132,
-          "rank": 19
-        }
-      ]
-    },
-    {
-      "model": "LogReg",
-      "train_regime": "all 2015\u201324",
-      "train_rows": 55854,
-      "params": {
-        "C": 0.1,
-        "penalty": "l1",
-        "solver": "liblinear"
-      },
-      "metrics": {
-        "train": {
-          "brier": 0.19244,
-          "accuracy": 0.700308,
-          "log_loss": 0.56464,
-          "n": 55854
-        },
-        "val_all": {
-          "brier": 0.195612,
-          "accuracy": 0.690472,
-          "log_loss": 0.571018,
-          "n": 5909
-        },
-        "val_post": {
-          "brier": 0.192202,
-          "accuracy": 0.669421,
-          "log_loss": 0.552559,
-          "n": 121
-        }
-      },
-      "feature_importances": [
-        {
-          "feature": "diff_srs",
-          "coef": 0.586973,
-          "abs_coef": 0.586973,
-          "rank": 1
-        },
-        {
-          "feature": "diff_conf_strength",
-          "coef": 0.430568,
-          "abs_coef": 0.430568,
-          "rank": 2
-        },
-        {
-          "feature": "diff_hot_streak",
-          "coef": 0.180289,
-          "abs_coef": 0.180289,
-          "rank": 3
-        },
-        {
-          "feature": "diff_close_game_pct",
-          "coef": 0.11251,
-          "abs_coef": 0.11251,
-          "rank": 4
-        },
-        {
-          "feature": "neutral_site",
-          "coef": -0.109664,
-          "abs_coef": 0.109664,
-          "rank": 5
-        },
-        {
-          "feature": "diff_elo",
-          "coef": 0.103607,
-          "abs_coef": 0.103607,
-          "rank": 6
-        },
-        {
-          "feature": "diff_road_win_pct",
-          "coef": -0.064088,
-          "abs_coef": 0.064088,
-          "rank": 7
-        },
-        {
-          "feature": "diff_efficiency_ratio",
-          "coef": 0.060784,
-          "abs_coef": 0.060784,
-          "rank": 8
-        },
-        {
-          "feature": "diff_non_conf_sos",
-          "coef": 0.022025,
-          "abs_coef": 0.022025,
-          "rank": 9
-        },
-        {
-          "feature": "diff_net_rating",
-          "coef": -0.020971,
-          "abs_coef": 0.020971,
-          "rank": 10
-        },
-        {
-          "feature": "diff_adj_def_rank",
-          "coef": -0.020392,
-          "abs_coef": 0.020392,
-          "rank": 11
-        },
-        {
-          "feature": "diff_upset_propensity",
-          "coef": 0.018241,
-          "abs_coef": 0.018241,
-          "rank": 12
-        },
-        {
-          "feature": "diff_experience",
-          "coef": -0.017015,
-          "abs_coef": 0.017015,
-          "rank": 13
-        },
-        {
-          "feature": "diff_adj_def_rating",
-          "coef": 0.014699,
-          "abs_coef": 0.014699,
-          "rank": 14
-        },
-        {
-          "feature": "seed_diff",
-          "coef": 0.01124,
-          "abs_coef": 0.01124,
-          "rank": 15
-        },
-        {
-          "feature": "diff_adj_off_rank",
-          "coef": -0.010339,
-          "abs_coef": 0.010339,
           "rank": 16
         },
         {
-          "feature": "diff_pace",
-          "coef": 0.00597,
-          "abs_coef": 0.00597,
+          "feature": "diff_adj_off_rank",
+          "importance": -0.000572,
+          "importance_std": 0.000174,
           "rank": 17
         },
         {
-          "feature": "diff_star_power",
-          "coef": 0.004061,
-          "abs_coef": 0.004061,
+          "feature": "diff_adj_off_rating",
+          "importance": -0.000829,
+          "importance_std": 0.000143,
           "rank": 18
         },
         {
-          "feature": "diff_adj_off_rating",
-          "coef": 0.0,
-          "abs_coef": 0.0,
+          "feature": "diff_efficiency_ratio",
+          "importance": -0.001456,
+          "importance_std": 0.000108,
           "rank": 19
         }
       ]
     },
     {
       "model": "LogReg",
-      "train_regime": "post 2015\u201324",
+      "train_regime": "full | post only (NCAA)",
       "train_rows": 1131,
       "params": {
         "C": 0.1,
@@ -506,9 +786,9 @@
           "n": 1131
         },
         "val_all": {
-          "brier": 0.219717,
-          "accuracy": 0.678118,
-          "log_loss": 0.653299,
+          "brier": 0.215236,
+          "accuracy": 0.685564,
+          "log_loss": 0.64132,
           "n": 5909
         },
         "val_post": {
@@ -629,6 +909,298 @@
         },
         {
           "feature": "seed_diff",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 19
+        }
+      ]
+    },
+    {
+      "model": "LogReg",
+      "train_regime": "full | post+conf",
+      "train_rows": 4003,
+      "params": {
+        "C": 0.1,
+        "penalty": "l1",
+        "solver": "liblinear"
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.136714,
+          "accuracy": 0.80015,
+          "log_loss": 0.423137,
+          "n": 4003
+        },
+        "val_all": {
+          "brier": 0.237912,
+          "accuracy": 0.674903,
+          "log_loss": 0.776097,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.148951,
+          "accuracy": 0.77686,
+          "log_loss": 0.450831,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_hot_streak",
+          "coef": 1.234127,
+          "abs_coef": 1.234127,
+          "rank": 1
+        },
+        {
+          "feature": "diff_elo",
+          "coef": 1.157724,
+          "abs_coef": 1.157724,
+          "rank": 2
+        },
+        {
+          "feature": "diff_conf_strength",
+          "coef": 0.522861,
+          "abs_coef": 0.522861,
+          "rank": 3
+        },
+        {
+          "feature": "diff_road_win_pct",
+          "coef": -0.234147,
+          "abs_coef": 0.234147,
+          "rank": 4
+        },
+        {
+          "feature": "diff_srs",
+          "coef": -0.197778,
+          "abs_coef": 0.197778,
+          "rank": 5
+        },
+        {
+          "feature": "neutral_site",
+          "coef": -0.187527,
+          "abs_coef": 0.187527,
+          "rank": 6
+        },
+        {
+          "feature": "diff_adj_def_rank",
+          "coef": -0.12866,
+          "abs_coef": 0.12866,
+          "rank": 7
+        },
+        {
+          "feature": "diff_close_game_pct",
+          "coef": 0.056168,
+          "abs_coef": 0.056168,
+          "rank": 8
+        },
+        {
+          "feature": "diff_adj_off_rating",
+          "coef": 0.055454,
+          "abs_coef": 0.055454,
+          "rank": 9
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "coef": 0.047412,
+          "abs_coef": 0.047412,
+          "rank": 10
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "coef": 0.03581,
+          "abs_coef": 0.03581,
+          "rank": 11
+        },
+        {
+          "feature": "diff_net_rating",
+          "coef": -0.020282,
+          "abs_coef": 0.020282,
+          "rank": 12
+        },
+        {
+          "feature": "seed_diff",
+          "coef": 0.017713,
+          "abs_coef": 0.017713,
+          "rank": 13
+        },
+        {
+          "feature": "diff_adj_off_rank",
+          "coef": 0.009111,
+          "abs_coef": 0.009111,
+          "rank": 14
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 15
+        },
+        {
+          "feature": "diff_pace",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 16
+        },
+        {
+          "feature": "diff_experience",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 17
+        },
+        {
+          "feature": "diff_star_power",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 18
+        },
+        {
+          "feature": "diff_non_conf_sos",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 19
+        }
+      ]
+    },
+    {
+      "model": "LogReg",
+      "train_regime": "full | post+conf+wtd",
+      "train_rows": 4003,
+      "params": {
+        "C": 0.1,
+        "penalty": "l1",
+        "solver": "liblinear"
+      },
+      "metrics": {
+        "train": {
+          "brier": 0.142119,
+          "accuracy": 0.795903,
+          "log_loss": 0.438347,
+          "n": 4003
+        },
+        "val_all": {
+          "brier": 0.224917,
+          "accuracy": 0.680487,
+          "log_loss": 0.704226,
+          "n": 5909
+        },
+        "val_post": {
+          "brier": 0.144105,
+          "accuracy": 0.809917,
+          "log_loss": 0.44129,
+          "n": 121
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "diff_elo",
+          "coef": 1.482374,
+          "abs_coef": 1.482374,
+          "rank": 1
+        },
+        {
+          "feature": "diff_hot_streak",
+          "coef": 0.607112,
+          "abs_coef": 0.607112,
+          "rank": 2
+        },
+        {
+          "feature": "diff_srs",
+          "coef": -0.329157,
+          "abs_coef": 0.329157,
+          "rank": 3
+        },
+        {
+          "feature": "diff_conf_strength",
+          "coef": 0.311162,
+          "abs_coef": 0.311162,
+          "rank": 4
+        },
+        {
+          "feature": "neutral_site",
+          "coef": -0.210714,
+          "abs_coef": 0.210714,
+          "rank": 5
+        },
+        {
+          "feature": "diff_road_win_pct",
+          "coef": -0.135272,
+          "abs_coef": 0.135272,
+          "rank": 6
+        },
+        {
+          "feature": "diff_adj_def_rank",
+          "coef": -0.123149,
+          "abs_coef": 0.123149,
+          "rank": 7
+        },
+        {
+          "feature": "diff_close_game_pct",
+          "coef": 0.095575,
+          "abs_coef": 0.095575,
+          "rank": 8
+        },
+        {
+          "feature": "diff_adj_off_rating",
+          "coef": 0.088437,
+          "abs_coef": 0.088437,
+          "rank": 9
+        },
+        {
+          "feature": "diff_adj_off_rank",
+          "coef": 0.082614,
+          "abs_coef": 0.082614,
+          "rank": 10
+        },
+        {
+          "feature": "diff_upset_propensity",
+          "coef": 0.052436,
+          "abs_coef": 0.052436,
+          "rank": 11
+        },
+        {
+          "feature": "diff_net_rating",
+          "coef": -0.024695,
+          "abs_coef": 0.024695,
+          "rank": 12
+        },
+        {
+          "feature": "diff_star_power",
+          "coef": 0.015883,
+          "abs_coef": 0.015883,
+          "rank": 13
+        },
+        {
+          "feature": "seed_diff",
+          "coef": 0.015817,
+          "abs_coef": 0.015817,
+          "rank": 14
+        },
+        {
+          "feature": "diff_experience",
+          "coef": 0.011066,
+          "abs_coef": 0.011066,
+          "rank": 15
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "coef": 0.006307,
+          "abs_coef": 0.006307,
+          "rank": 16
+        },
+        {
+          "feature": "diff_non_conf_sos",
+          "coef": 0.003431,
+          "abs_coef": 0.003431,
+          "rank": 17
+        },
+        {
+          "feature": "diff_adj_def_rating",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 18
+        },
+        {
+          "feature": "diff_pace",
           "coef": 0.0,
           "abs_coef": 0.0,
           "rank": 19

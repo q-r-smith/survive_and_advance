@@ -7,7 +7,7 @@ import joblib
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "game_predictor.pkl")
 
-NON_FEATURE_COLS = ["season", "season_type"]
+NON_FEATURE_COLS = ["season", "season_type", "game_type", "conf_game"]
 
 DEFAULT_PARAMS = {
     "loss": "log_loss",
@@ -30,9 +30,9 @@ class GamePredictor:
         self.model = HistGradientBoostingClassifier(**p)
         self.feature_cols = None
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
+    def fit(self, X: pd.DataFrame, y: pd.Series, sample_weight=None):
         self.feature_cols = [c for c in X.columns if c not in NON_FEATURE_COLS]
-        self.model.fit(X[self.feature_cols], y)
+        self.model.fit(X[self.feature_cols], y, sample_weight=sample_weight)
         return self
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
