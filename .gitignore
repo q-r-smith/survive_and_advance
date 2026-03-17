@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Env files
+.env
+.env.*
+
+# Virtual environments
+venv/
+.env.local
+
+# Build / distribution
+dist/
+build/
+*.egg-info/
+
+# macOS
+.DS_Store
