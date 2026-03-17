@@ -17,3 +17,6 @@ build/
 
 # macOS
 .DS_Store
+
+# cache data files
+*.cache/
