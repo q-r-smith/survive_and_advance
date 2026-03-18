@@ -2,11 +2,11 @@
 """
 Pulls all raw data, caches to CSV, builds features, and produces train/val splits.
 
-Train:      2015–2024 games (all regular + postseason)
-Validation: 2025 games (postseason = tournament; regular included with season_type column)
+Train:      2015–2025 games (all regular + postseason)
+Validation: 2026 games (postseason = tournament; regular included with season_type column)
 
 No leakage: features for each season are built entirely from that season's
-regular-season data. 2025 features never touch 2025 postseason outcomes.
+regular-season data. 2026 features never touch 2026 postseason outcomes.
 """
 
 import os
@@ -29,8 +29,8 @@ from features.builder import build_team_season_features, build_training_set
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 RAW_DIR   = os.path.join(CACHE_DIR, "raw")
-TRAIN_SEASONS = range(2015, 2025)   # 2015–2024 inclusive
-VAL_SEASON    = 2025
+TRAIN_SEASONS = range(2015, 2026)   # 2015–2025 inclusive (adds 2025 tournament)
+VAL_SEASON    = 2025                # permanent benchmark — complete, stable, n=121
 # 2014 is needed as the prior-season feature set for 2015 regular season games.
 # We build features from it but never train on 2014 games themselves.
 PRIOR_SEASON  = 2014
@@ -126,12 +126,47 @@ def build_features(data, seasons):
 
 def build_splits(data, features_by_season):
     """
-    Build train (2015–2024) and val (2025) feature matrices.
-    Labels: y=1 → home team won.
-    Val set retains season_type so you can filter to postseason (tournament) only.
+    Build train / val splits with strict temporal integrity.
+
+    Training set:
+      - All game types for seasons 2015–2024
+      - REGULAR SEASON ONLY for season 2025
+      (2025 postseason is reserved for val — never in training)
+
+    Validation set:
+      - ALL 2025 games (regular + postseason)
+      - season_type column preserved for filtering to postseason only
+
+    This prevents the 2025 postseason games from appearing in both sets,
+    which would inflate val metrics by leaking training targets into eval.
     """
-    train_games = data["games"][data["games"]["season"].isin(TRAIN_SEASONS)]
-    val_games   = data["games"][data["games"]["season"] == VAL_SEASON]
+    games = data["games"]
+
+    # Training: all seasons 2015–2024 (any game type)
+    # PLUS 2025 regular season only (no postseason)
+    train_mask = (
+        (games["season"].isin(range(2015, 2025)))
+        | (
+            (games["season"] == 2025) &
+            (games["seasonType"] == "regular")
+        )
+    )
+    train_games = games[train_mask]
+
+    # Validation: all 2025 games (regular + postseason)
+    val_games = games[games["season"] == VAL_SEASON]
+
+    print(f"\n  Training games   : {len(train_games):,}")
+    print(f"  Val games        : {len(val_games):,}")
+
+    # Integrity check — 2025 postseason must not be in training
+    train_post_2025 = train_games[
+        (train_games["season"] == 2025) & (train_games["seasonType"] == "postseason")
+    ]
+    assert len(train_post_2025) == 0, (
+        f"LEAKAGE: {len(train_post_2025)} 2025 postseason games in training set!"
+    )
+    print(f"  Leakage check    : PASSED (0 postseason 2025 games in training)")
 
     print(f"\n  building training set  ({len(train_games):,} games) ...")
     X_train, y_train = build_training_set(train_games, features_by_season)
@@ -151,7 +186,8 @@ def main(force=False):
     # Pull one extra prior season so regular-season games in the first train year
     # (2015) can use leak-free features. build_splits still filters games to
     # TRAIN_SEASONS + VAL_SEASON via the module-level constants.
-    all_seasons = [PRIOR_SEASON] + list(TRAIN_SEASONS) + [VAL_SEASON]
+    # Deduplicate: TRAIN_SEASONS includes VAL_SEASON (2025), so avoid pulling twice
+    all_seasons = list(dict.fromkeys([PRIOR_SEASON] + list(TRAIN_SEASONS) + [VAL_SEASON]))
 
     print("=" * 50)
     print("STEP 1 — Pull raw data")
@@ -181,7 +217,7 @@ def main(force=False):
     _save(X_val,                        os.path.join(CACHE_DIR, "X_val.csv"))
     _save(y_val.to_frame("label"),      os.path.join(CACHE_DIR, "y_val.csv"))
 
-    # quick sanity checks
+    # Sanity checks
     print("\n── Sanity checks ───────────────────────────────")
     print(f"  X_train shape : {X_train.shape}")
     print(f"  X_val shape   : {X_val.shape}")
@@ -189,7 +225,23 @@ def main(force=False):
     print(f"  Val label balance    : {y_val.mean():.3f} (home win rate)")
 
     val_post = X_val[X_val["season_type"] == "postseason"]
-    print(f"  Val postseason rows  : {len(val_post)}  (tournament games)")
+    print(f"  Val postseason rows  : {len(val_post)}  (expect 121)")
+    if len(val_post) != 121:
+        print(f"  WARNING: expected 121 postseason val rows, got {len(val_post)}")
+        print(f"  Check for train/val overlap in build_splits()")
+
+    train_post_seasons = set(
+        X_train[X_train["season_type"] == "postseason"]["season"].unique()
+    )
+    val_post_seasons = set(val_post["season"].unique()) if len(val_post) > 0 else set()
+    overlap = train_post_seasons & val_post_seasons
+    if overlap:
+        print(f"  WARNING: postseason overlap between train and val: {overlap}")
+    else:
+        print(f"  Train/val postseason overlap: NONE (clean split)")
+
+    non_numeric = [c for c in X_train.columns if X_train[c].dtype == object]
+    print(f"  Non-numeric columns  : {non_numeric}  (expect [])")
 
     missing_train = X_train.isnull().mean().sort_values(ascending=False).head(5)
     print(f"\n  Top missing (train):\n{missing_train.to_string()}")

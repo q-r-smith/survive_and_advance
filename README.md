@@ -323,8 +323,8 @@ project root/
 
 ```
 Prediction model (train.py --all):
-  LogReg  full  post+conf+weighted   Brier=0.1441  Acc=81.0%  n=121  ← current best
-  HistGBT trimmed  post+conf         Brier=0.1477  Acc=80.2%  n=121
+  LogReg  full  post+conf+weighted   Brier=0.1438  Acc=80.7%  n=121  ← current best
+  HistGBT trimmed  post+conf         Brier=0.1478  Acc=77.7%  n=121
 
 Simulation (validation/simulation.py):
   R64 Brier should be close to ~0.144 (same as prediction model)
@@ -332,6 +332,6 @@ Simulation (validation/simulation.py):
   Calibration max gap should be < 0.05 across all probability bins
 
 Backtest (validation/backtest.py):
-  Average Brier across 2019-2024: target < 0.18
+  Average Brier across 2019-2026: target < 0.18
   Year-to-year variance: expected, some years are upset-heavy
 ```

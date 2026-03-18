@@ -36,7 +36,7 @@ CACHE_DIR            = os.path.join(os.path.dirname(__file__), "..", "data", "ca
 PARAMS_PATH          = os.path.join(os.path.dirname(__file__), "..", "models", "best_params.json")
 LOGISTIC_PARAMS_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "best_logistic_params.json")
 
-NON_FEATURE_COLS = ["season", "season_type"]
+NON_FEATURE_COLS = ["season", "season_type", "game_type", "conf_game"]
 
 N_ITER       = 40
 CV_FOLDS     = 5
@@ -76,7 +76,11 @@ def _logistic_param_grid():
 def load_train():
     X_raw = pd.read_csv(os.path.join(CACHE_DIR, "X_train.csv"))
     y     = pd.read_csv(os.path.join(CACHE_DIR, "y_train.csv"))["label"]
-    feat_cols = [c for c in X_raw.columns if c not in NON_FEATURE_COLS]
+    feat_cols = [
+        c for c in X_raw.columns
+        if c not in NON_FEATURE_COLS
+        and X_raw[c].dtype != object
+    ]
     # Return feature matrix, labels, and raw season array (needed for weighted CV)
     return X_raw[feat_cols], y, X_raw["season"].values
 
@@ -84,7 +88,8 @@ def load_train():
 def load_val(feat_cols):
     X = pd.read_csv(os.path.join(CACHE_DIR, "X_val.csv"))
     y = pd.read_csv(os.path.join(CACHE_DIR, "y_val.csv"))["label"]
-    return X[feat_cols], y
+    valid_cols = [c for c in feat_cols if c in X.columns]
+    return X[valid_cols], y
 
 
 def eval_on_val(params, X_train, y_train, X_val, y_val):
@@ -172,6 +177,11 @@ def run_logistic_search(X, y, X_val, y_val):
     Uses SimpleImputer + StandardScaler pipeline so NaN features are handled.
     Saves best params to models/best_logistic_params.json.
     """
+    # Belt-and-suspenders: ensure no object-dtype columns leaked through
+    numeric_cols = [c for c in X.columns if X[c].dtype != object]
+    X     = X[numeric_cols]
+    X_val = X_val[[c for c in numeric_cols if c in X_val.columns]]
+
     pipe = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler",  StandardScaler()),

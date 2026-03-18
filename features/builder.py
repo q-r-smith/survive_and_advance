@@ -281,10 +281,10 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     """
     ts = team_stats_df[team_stats_df["season"] == season]
     srs_map = srs_df[srs_df["season"] == season].set_index("team")["rating"].to_dict()
-    adj = adj_df[adj_df["season"] == season].set_index("team")
+    adj = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").set_index("team")
 
     # Precompute normalized rank maps for the full season
-    adj_season = adj_df[adj_df["season"] == season].copy()
+    adj_season = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").copy()
     if not adj_season.empty and "team" in adj_season.columns:
         n = len(adj_season)
         adj_season["_off_rank"] = adj_season["offensiveRating"].rank(ascending=False)
