@@ -107,25 +107,35 @@ def main():
 
     # Summary table
     if len(all_metrics) > 1:
-        print(f"\n{'='*65}")
+        # Per-season overall row
+        print(f"\n{'='*80}")
         print(f" Summary — {args.model} model")
-        print(f"{'='*65}")
-        print(f"  {'Season':>6}  {'Brier':>7}  {'R64 Acc':>8}  "
-              f"{'Champion':<22}  {'Prob':>6}")
-        print(f"  {'-'*55}")
+        print(f"{'='*80}")
+        print(f"  {'Season':>6}  {'Overall':>7}  {'R64':>6}  {'R32':>6}  "
+              f"{'S16':>6}  {'E8':>6}  {'F4':>6}  {'Champ':>6}  {'Champion':<18}  {'Prob':>6}")
+        print(f"  {'-'*76}")
 
-        briers = []
+        col_briers = {r: [] for r in range(1, 7)}
+        overall_briers = []
         for season in sorted(all_metrics):
-            m   = all_metrics[season]
-            b   = m["overall_brier"]
-            r64 = m["round_metrics"].get(1, {}).get("accuracy", float("nan"))
-            briers.append(b)
-            print(f"  {season:>6}  {b:>7.4f}  {r64:>8.1%}  "
-                  f"{m['champion']:<22}  {m['champion_prob']:>6.1%}")
+            m  = all_metrics[season]
+            b  = m["overall_brier"]
+            overall_briers.append(b)
+            round_cols = ""
+            for r in range(1, 7):
+                rb = m["round_metrics"].get(r, {}).get("brier", float("nan"))
+                col_briers[r].append(rb)
+                round_cols += f"  {rb:>6.4f}" if not np.isnan(rb) else f"  {'—':>6}"
+            print(f"  {season:>6}  {b:>7.4f}{round_cols}  "
+                  f"{m['champion']:<18}  {m['champion_prob']:>6.1%}")
 
-        print(f"  {'-'*55}")
-        print(f"  {'Mean':>6}  {np.mean(briers):>7.4f}")
-        print(f"{'='*65}")
+        print(f"  {'-'*76}")
+        mean_cols = ""
+        for r in range(1, 7):
+            vals = [v for v in col_briers[r] if not np.isnan(v)]
+            mean_cols += f"  {np.mean(vals):>6.4f}" if vals else f"  {'—':>6}"
+        print(f"  {'Mean':>6}  {np.mean(overall_briers):>7.4f}{mean_cols}")
+        print(f"{'='*80}")
 
 
 if __name__ == "__main__":

@@ -88,10 +88,15 @@ def compute_elo(elo_df, season):
     return elo_df[elo_df["season"] == season].set_index("team")["elo"].to_dict()
 
 
-def compute_hot_streak(games_df, season, n=10):
+def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
     """
-    Recency-weighted win rate over each team's last n regular season games.
-    Weights decay exponentially — most recent game has highest weight.
+    Split-window recency-weighted win rate for each team's regular season games.
+
+    Uses two windows to reward teams genuinely peaking in late Feb/March:
+      - Last n_recent games: weight = 2.0 (strong recency signal)
+      - Games n_recent+1 through n_total: weight = 1.0 (baseline context)
+
+    Teams with no games fall back to 0.5.
     Only uses games where seasonType == 'regular' (no tournament games).
     Returns dict: {team: hot_streak}
     """
@@ -105,18 +110,23 @@ def compute_hot_streak(games_df, season, n=10):
     for team in all_teams:
         team_games = reg[
             (reg["homeTeam"] == team) | (reg["awayTeam"] == team)
-        ].tail(n)
+        ].tail(n_total)
 
         if len(team_games) == 0:
             result[team] = 0.5
             continue
 
-        weights = np.exp(np.linspace(-2, 0, len(team_games)))
-        wins = [
+        wins = np.array([
             (1 if g["homeWinner"] else 0) if g["homeTeam"] == team
             else (0 if g["homeWinner"] else 1)
             for _, g in team_games.iterrows()
-        ]
+        ], dtype=float)
+
+        n = len(wins)
+        recent_start = max(0, n - n_recent)
+        weights = np.ones(n)
+        weights[recent_start:] = 2.0
+
         result[team] = float(np.average(wins, weights=weights))
 
     return result

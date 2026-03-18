@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-18T14:12:46",
+  "timestamp": "2026-03-18T19:12:51",
   "flags": [
     "--all"
   ],
@@ -71,137 +71,137 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.183917,
-          "accuracy": 0.712719,
-          "log_loss": 0.539718,
+          "brier": 0.184691,
+          "accuracy": 0.711681,
+          "log_loss": 0.541562,
           "n": 61654
         },
         "val_all": {
-          "brier": 0.185007,
-          "accuracy": 0.705026,
-          "log_loss": 0.539793,
+          "brier": 0.185558,
+          "accuracy": 0.704349,
+          "log_loss": 0.541202,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.17082,
-          "accuracy": 0.760331,
-          "log_loss": 0.511856,
+          "brier": 0.170595,
+          "accuracy": 0.752066,
+          "log_loss": 0.510048,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_srs",
-          "importance": 0.013296,
-          "importance_std": 0.001001,
+          "importance": 0.012997,
+          "importance_std": 0.000982,
           "rank": 1
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.009943,
-          "importance_std": 0.000893,
+          "importance": 0.009689,
+          "importance_std": 0.000906,
           "rank": 2
         },
         {
           "feature": "diff_elo",
-          "importance": 0.007109,
-          "importance_std": 0.000782,
+          "importance": 0.008035,
+          "importance_std": 0.000805,
           "rank": 3
         },
         {
           "feature": "neutral_site",
-          "importance": 0.002809,
-          "importance_std": 0.000454,
+          "importance": 0.002249,
+          "importance_std": 0.000483,
           "rank": 4
         },
         {
           "feature": "diff_hot_streak",
-          "importance": 0.001822,
-          "importance_std": 0.00025,
+          "importance": 0.001567,
+          "importance_std": 0.000285,
           "rank": 5
         },
         {
           "feature": "diff_star_power",
-          "importance": 0.000453,
-          "importance_std": 0.000123,
+          "importance": 0.000427,
+          "importance_std": 0.000121,
           "rank": 6
         },
         {
           "feature": "diff_efficiency_ratio",
-          "importance": 0.000309,
-          "importance_std": 0.000114,
+          "importance": 0.000332,
+          "importance_std": 0.000134,
           "rank": 7
         },
         {
           "feature": "diff_net_rating",
-          "importance": 0.000268,
-          "importance_std": 0.000104,
+          "importance": 0.000197,
+          "importance_std": 9.5e-05,
           "rank": 8
         },
         {
-          "feature": "diff_road_win_pct",
-          "importance": 0.000176,
-          "importance_std": 5.3e-05,
+          "feature": "diff_non_conf_sos",
+          "importance": 0.000119,
+          "importance_std": 4.6e-05,
           "rank": 9
         },
         {
-          "feature": "diff_non_conf_sos",
-          "importance": 0.000172,
-          "importance_std": 4.9e-05,
+          "feature": "diff_upset_propensity",
+          "importance": 0.000114,
+          "importance_std": 6.3e-05,
           "rank": 10
         },
         {
-          "feature": "diff_adj_off_rating",
-          "importance": 0.000128,
-          "importance_std": 2.5e-05,
+          "feature": "diff_road_win_pct",
+          "importance": 0.000113,
+          "importance_std": 3.3e-05,
           "rank": 11
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": 0.000113,
-          "importance_std": 3.8e-05,
+          "feature": "diff_adj_off_rating",
+          "importance": 0.000109,
+          "importance_std": 2.3e-05,
           "rank": 12
         },
         {
           "feature": "diff_adj_def_rank",
-          "importance": 0.0001,
-          "importance_std": 6.8e-05,
+          "importance": 9.7e-05,
+          "importance_std": 6e-05,
           "rank": 13
         },
         {
-          "feature": "diff_upset_propensity",
-          "importance": 9.4e-05,
-          "importance_std": 5.1e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": 9.5e-05,
+          "importance_std": 2.1e-05,
           "rank": 14
         },
         {
           "feature": "diff_adj_off_rank",
-          "importance": 8.6e-05,
-          "importance_std": 5.1e-05,
+          "importance": 8.2e-05,
+          "importance_std": 4.6e-05,
           "rank": 15
         },
         {
-          "feature": "diff_close_game_pct",
-          "importance": 7.6e-05,
-          "importance_std": 2.1e-05,
+          "feature": "diff_experience",
+          "importance": 4.6e-05,
+          "importance_std": 3.5e-05,
           "rank": 16
         },
         {
           "feature": "diff_pace",
-          "importance": 5.2e-05,
+          "importance": 4.3e-05,
           "importance_std": 5.7e-05,
           "rank": 17
         },
         {
-          "feature": "diff_experience",
-          "importance": 4.1e-05,
-          "importance_std": 5.2e-05,
+          "feature": "diff_close_game_pct",
+          "importance": 3.8e-05,
+          "importance_std": 1.7e-05,
           "rank": 18
         },
         {
           "feature": "seed_diff",
-          "importance": 1e-05,
-          "importance_std": 9e-06,
+          "importance": -3e-06,
+          "importance_std": 5e-06,
           "rank": 19
         }
       ]
@@ -222,89 +222,89 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.184948,
-          "accuracy": 0.710611,
-          "log_loss": 0.54237,
+          "brier": 0.185306,
+          "accuracy": 0.709832,
+          "log_loss": 0.543089,
           "n": 61654
         },
         "val_all": {
-          "brier": 0.185699,
-          "accuracy": 0.704519,
-          "log_loss": 0.541628,
+          "brier": 0.18599,
+          "accuracy": 0.702657,
+          "log_loss": 0.542231,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.170269,
-          "accuracy": 0.760331,
-          "log_loss": 0.510202,
+          "brier": 0.169751,
+          "accuracy": 0.735537,
+          "log_loss": 0.507034,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_srs",
-          "importance": 0.013091,
-          "importance_std": 0.000962,
+          "importance": 0.013119,
+          "importance_std": 0.000993,
           "rank": 1
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.009857,
-          "importance_std": 0.000894,
+          "importance": 0.009702,
+          "importance_std": 0.000914,
           "rank": 2
         },
         {
           "feature": "diff_elo",
-          "importance": 0.007314,
-          "importance_std": 0.000804,
+          "importance": 0.008318,
+          "importance_std": 0.000814,
           "rank": 3
         },
         {
           "feature": "neutral_site",
-          "importance": 0.002416,
-          "importance_std": 0.000434,
+          "importance": 0.002168,
+          "importance_std": 0.000466,
           "rank": 4
         },
         {
           "feature": "diff_hot_streak",
-          "importance": 0.002097,
-          "importance_std": 0.000314,
+          "importance": 0.00187,
+          "importance_std": 0.000318,
           "rank": 5
         },
         {
           "feature": "diff_efficiency_ratio",
-          "importance": 0.000777,
-          "importance_std": 0.00019,
+          "importance": 0.00077,
+          "importance_std": 0.000191,
           "rank": 6
         },
         {
           "feature": "diff_star_power",
-          "importance": 0.00037,
-          "importance_std": 0.000124,
+          "importance": 0.000406,
+          "importance_std": 0.000136,
           "rank": 7
         },
         {
           "feature": "diff_upset_propensity",
-          "importance": 8.5e-05,
-          "importance_std": 1.8e-05,
+          "importance": 0.000101,
+          "importance_std": 2e-05,
           "rank": 8
         },
         {
           "feature": "diff_adj_def_rating",
-          "importance": 5.9e-05,
-          "importance_std": 3.6e-05,
+          "importance": 7.9e-05,
+          "importance_std": 3.9e-05,
           "rank": 9
         },
         {
-          "feature": "seed_diff",
-          "importance": 3.7e-05,
-          "importance_std": 9e-06,
+          "feature": "diff_pace",
+          "importance": 3.4e-05,
+          "importance_std": 3.6e-05,
           "rank": 10
         },
         {
-          "feature": "diff_pace",
-          "importance": 2.7e-05,
-          "importance_std": 4e-05,
+          "feature": "seed_diff",
+          "importance": 9e-06,
+          "importance_std": 8e-06,
           "rank": 11
         }
       ]
@@ -325,89 +325,89 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.185657,
-          "accuracy": 0.709621,
-          "log_loss": 0.544432,
+          "brier": 0.186829,
+          "accuracy": 0.70748,
+          "log_loss": 0.547439,
           "n": 61654
         },
         "val_all": {
-          "brier": 0.187758,
-          "accuracy": 0.703503,
-          "log_loss": 0.547077,
+          "brier": 0.18852,
+          "accuracy": 0.701472,
+          "log_loss": 0.54958,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.157203,
+          "brier": 0.158346,
           "accuracy": 0.752066,
-          "log_loss": 0.469547,
+          "log_loss": 0.477349,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "importance": 0.021547,
-          "importance_std": 0.001602,
+          "importance": 0.026655,
+          "importance_std": 0.001886,
           "rank": 1
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.01007,
-          "importance_std": 0.001065,
+          "importance": 0.009243,
+          "importance_std": 0.00104,
           "rank": 2
         },
         {
-          "feature": "diff_srs",
-          "importance": 0.003511,
-          "importance_std": 0.000308,
+          "feature": "diff_hot_streak",
+          "importance": 0.002752,
+          "importance_std": 0.000599,
           "rank": 3
         },
         {
-          "feature": "neutral_site",
-          "importance": 0.003246,
-          "importance_std": 0.000526,
+          "feature": "diff_srs",
+          "importance": 0.002549,
+          "importance_std": 0.000315,
           "rank": 4
         },
         {
-          "feature": "diff_hot_streak",
-          "importance": 0.003085,
-          "importance_std": 0.000499,
+          "feature": "neutral_site",
+          "importance": 0.002266,
+          "importance_std": 0.000506,
           "rank": 5
         },
         {
           "feature": "diff_efficiency_ratio",
-          "importance": 0.000561,
-          "importance_std": 0.000196,
+          "importance": 0.000283,
+          "importance_std": 0.000134,
           "rank": 6
         },
         {
-          "feature": "diff_star_power",
-          "importance": 0.000246,
-          "importance_std": 3.5e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": 0.000101,
+          "importance_std": 0.000104,
           "rank": 7
         },
         {
           "feature": "diff_upset_propensity",
-          "importance": 9.2e-05,
-          "importance_std": 0.000103,
+          "importance": 6.5e-05,
+          "importance_std": 3.7e-05,
           "rank": 8
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": 8.4e-05,
-          "importance_std": 0.000138,
+          "feature": "diff_star_power",
+          "importance": 1.5e-05,
+          "importance_std": 8e-06,
           "rank": 9
         },
         {
-          "feature": "diff_pace",
-          "importance": 4.5e-05,
-          "importance_std": 3e-05,
+          "feature": "seed_diff",
+          "importance": 8e-06,
+          "importance_std": 1.1e-05,
           "rank": 10
         },
         {
-          "feature": "seed_diff",
-          "importance": 1e-05,
-          "importance_std": 4.1e-05,
+          "feature": "diff_pace",
+          "importance": 3e-06,
+          "importance_std": 1.6e-05,
           "rank": 11
         }
       ]
@@ -428,89 +428,89 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.11113,
-          "accuracy": 0.839526,
-          "log_loss": 0.349402,
+          "brier": 0.129428,
+          "accuracy": 0.816071,
+          "log_loss": 0.401791,
           "n": 4306
         },
         "val_all": {
-          "brier": 0.234316,
-          "accuracy": 0.671349,
-          "log_loss": 0.737285,
+          "brier": 0.227663,
+          "accuracy": 0.676087,
+          "log_loss": 0.69504,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.147813,
-          "accuracy": 0.77686,
-          "log_loss": 0.447148,
+          "brier": 0.152058,
+          "accuracy": 0.785124,
+          "log_loss": 0.460354,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "importance": 0.03552,
-          "importance_std": 0.002879,
+          "importance": 0.059044,
+          "importance_std": 0.00408,
           "rank": 1
         },
         {
           "feature": "diff_srs",
-          "importance": 0.007081,
-          "importance_std": 0.000499,
+          "importance": 0.009906,
+          "importance_std": 0.000763,
           "rank": 2
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.006566,
-          "importance_std": 0.001359,
+          "importance": 0.005803,
+          "importance_std": 0.001153,
           "rank": 3
         },
         {
-          "feature": "diff_hot_streak",
-          "importance": 0.003705,
-          "importance_std": 0.002052,
+          "feature": "neutral_site",
+          "importance": 0.001248,
+          "importance_std": 0.000232,
           "rank": 4
         },
         {
-          "feature": "neutral_site",
-          "importance": 0.001246,
-          "importance_std": 0.000207,
+          "feature": "diff_pace",
+          "importance": 0.00017,
+          "importance_std": 0.000101,
           "rank": 5
         },
         {
-          "feature": "diff_pace",
-          "importance": 0.000301,
-          "importance_std": 0.000105,
+          "feature": "diff_upset_propensity",
+          "importance": 3.4e-05,
+          "importance_std": 5.5e-05,
           "rank": 6
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": 6.7e-05,
-          "importance_std": 0.000183,
+          "feature": "seed_diff",
+          "importance": -3.8e-05,
+          "importance_std": 3.5e-05,
           "rank": 7
         },
         {
-          "feature": "diff_upset_propensity",
-          "importance": -1e-06,
-          "importance_std": 4.9e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": -0.000152,
+          "importance_std": 0.000245,
           "rank": 8
         },
         {
-          "feature": "seed_diff",
-          "importance": -4.6e-05,
-          "importance_std": 9e-05,
+          "feature": "diff_star_power",
+          "importance": -0.000272,
+          "importance_std": 9.6e-05,
           "rank": 9
         },
         {
-          "feature": "diff_star_power",
-          "importance": -0.000612,
-          "importance_std": 7.6e-05,
+          "feature": "diff_efficiency_ratio",
+          "importance": -0.00191,
+          "importance_std": 0.00028,
           "rank": 10
         },
         {
-          "feature": "diff_efficiency_ratio",
-          "importance": -0.002333,
-          "importance_std": 0.000219,
+          "feature": "diff_hot_streak",
+          "importance": -0.00191,
+          "importance_std": 0.001603,
           "rank": 11
         }
       ]
@@ -531,89 +531,89 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.11536,
-          "accuracy": 0.836275,
-          "log_loss": 0.363256,
+          "brier": 0.134804,
+          "accuracy": 0.805852,
+          "log_loss": 0.416097,
           "n": 4306
         },
         "val_all": {
-          "brier": 0.228624,
-          "accuracy": 0.67778,
-          "log_loss": 0.715174,
+          "brier": 0.22306,
+          "accuracy": 0.67998,
+          "log_loss": 0.683146,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.15539,
-          "accuracy": 0.77686,
-          "log_loss": 0.465985,
+          "brier": 0.153703,
+          "accuracy": 0.768595,
+          "log_loss": 0.461209,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "importance": 0.068821,
-          "importance_std": 0.004281,
+          "importance": 0.086122,
+          "importance_std": 0.004623,
           "rank": 1
         },
         {
           "feature": "diff_srs",
-          "importance": 0.010851,
-          "importance_std": 0.000817,
+          "importance": 0.01096,
+          "importance_std": 0.000805,
           "rank": 2
         },
         {
           "feature": "diff_conf_strength",
-          "importance": 0.006247,
-          "importance_std": 0.001195,
+          "importance": 0.006249,
+          "importance_std": 0.001074,
           "rank": 3
         },
         {
           "feature": "neutral_site",
-          "importance": 0.001318,
-          "importance_std": 0.000213,
+          "importance": 0.001011,
+          "importance_std": 0.000245,
           "rank": 4
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": 0.000164,
-          "importance_std": 0.000276,
+          "feature": "diff_pace",
+          "importance": 0.000199,
+          "importance_std": 0.000149,
           "rank": 5
         },
         {
-          "feature": "diff_pace",
-          "importance": 0.000126,
-          "importance_std": 0.000173,
+          "feature": "seed_diff",
+          "importance": 1.8e-05,
+          "importance_std": 2.5e-05,
           "rank": 6
         },
         {
-          "feature": "seed_diff",
-          "importance": 1.5e-05,
-          "importance_std": 7.9e-05,
+          "feature": "diff_upset_propensity",
+          "importance": -0.000127,
+          "importance_std": 9.7e-05,
           "rank": 7
         },
         {
-          "feature": "diff_upset_propensity",
-          "importance": -0.000147,
-          "importance_std": 7.2e-05,
+          "feature": "diff_star_power",
+          "importance": -0.000492,
+          "importance_std": 7.7e-05,
           "rank": 8
         },
         {
-          "feature": "diff_star_power",
-          "importance": -0.000895,
-          "importance_std": 9.4e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": -0.000941,
+          "importance_std": 0.000299,
           "rank": 9
         },
         {
           "feature": "diff_efficiency_ratio",
-          "importance": -0.001739,
-          "importance_std": 0.000284,
+          "importance": -0.001659,
+          "importance_std": 0.000356,
           "rank": 10
         },
         {
           "feature": "diff_hot_streak",
-          "importance": -0.003809,
-          "importance_std": 0.001112,
+          "importance": -0.002537,
+          "importance_std": 0.000872,
           "rank": 11
         }
       ]
@@ -634,137 +634,137 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.136453,
-          "accuracy": 0.798408,
-          "log_loss": 0.425475,
+          "brier": 0.12978,
+          "accuracy": 0.816976,
+          "log_loss": 0.40905,
           "n": 1131
         },
         "val_all": {
-          "brier": 0.207643,
-          "accuracy": 0.684041,
-          "log_loss": 0.604628,
+          "brier": 0.212503,
+          "accuracy": 0.682687,
+          "log_loss": 0.62495,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.163783,
-          "accuracy": 0.77686,
-          "log_loss": 0.490088,
+          "brier": 0.165175,
+          "accuracy": 0.752066,
+          "log_loss": 0.494642,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "importance": 0.095435,
-          "importance_std": 0.003831,
+          "importance": 0.094792,
+          "importance_std": 0.003804,
           "rank": 1
         },
         {
-          "feature": "diff_hot_streak",
-          "importance": 0.006482,
-          "importance_std": 0.000422,
+          "feature": "diff_road_win_pct",
+          "importance": 0.003562,
+          "importance_std": 0.000202,
           "rank": 2
         },
         {
-          "feature": "diff_road_win_pct",
-          "importance": 0.00447,
-          "importance_std": 0.000232,
+          "feature": "diff_hot_streak",
+          "importance": 0.002858,
+          "importance_std": 0.000616,
           "rank": 3
         },
         {
-          "feature": "diff_conf_strength",
-          "importance": 0.001027,
-          "importance_std": 0.000492,
+          "feature": "diff_srs",
+          "importance": 0.000229,
+          "importance_std": 0.000263,
           "rank": 4
         },
         {
-          "feature": "diff_experience",
-          "importance": 0.000129,
-          "importance_std": 5.3e-05,
+          "feature": "diff_conf_strength",
+          "importance": 0.000213,
+          "importance_std": 0.00044,
           "rank": 5
         },
         {
           "feature": "neutral_site",
-          "importance": 0.000129,
-          "importance_std": 5.1e-05,
+          "importance": 0.000189,
+          "importance_std": 6.3e-05,
           "rank": 6
         },
         {
-          "feature": "diff_non_conf_sos",
-          "importance": 8.8e-05,
-          "importance_std": 5e-05,
+          "feature": "diff_pace",
+          "importance": 0.000134,
+          "importance_std": 8.6e-05,
           "rank": 7
         },
         {
           "feature": "seed_diff",
-          "importance": 8.8e-05,
-          "importance_std": 3.4e-05,
+          "importance": 7.1e-05,
+          "importance_std": 2.6e-05,
           "rank": 8
         },
         {
-          "feature": "diff_pace",
-          "importance": 3.8e-05,
-          "importance_std": 5e-05,
+          "feature": "diff_non_conf_sos",
+          "importance": 6e-05,
+          "importance_std": 5.7e-05,
           "rank": 9
         },
         {
-          "feature": "diff_star_power",
-          "importance": 2.4e-05,
-          "importance_std": 2.3e-05,
+          "feature": "diff_experience",
+          "importance": 4.8e-05,
+          "importance_std": 6.7e-05,
           "rank": 10
         },
         {
           "feature": "diff_upset_propensity",
-          "importance": -7.5e-05,
-          "importance_std": 0.000117,
+          "importance": -0.000147,
+          "importance_std": 7.7e-05,
           "rank": 11
         },
         {
-          "feature": "diff_adj_def_rating",
-          "importance": -0.000126,
-          "importance_std": 8.3e-05,
+          "feature": "diff_star_power",
+          "importance": -0.000161,
+          "importance_std": 6.3e-05,
           "rank": 12
         },
         {
-          "feature": "diff_net_rating",
-          "importance": -0.000127,
-          "importance_std": 1.7e-05,
+          "feature": "diff_adj_def_rating",
+          "importance": -0.000202,
+          "importance_std": 8e-05,
           "rank": 13
         },
         {
           "feature": "diff_adj_def_rank",
-          "importance": -0.000142,
-          "importance_std": 0.000166,
+          "importance": -0.000389,
+          "importance_std": 0.000292,
           "rank": 14
         },
         {
-          "feature": "diff_srs",
-          "importance": -0.000273,
-          "importance_std": 0.000249,
+          "feature": "diff_adj_off_rank",
+          "importance": -0.000413,
+          "importance_std": 0.000177,
           "rank": 15
         },
         {
           "feature": "diff_close_game_pct",
-          "importance": -0.000541,
-          "importance_std": 0.000458,
+          "importance": -0.000487,
+          "importance_std": 0.000522,
           "rank": 16
         },
         {
-          "feature": "diff_adj_off_rank",
-          "importance": -0.000572,
-          "importance_std": 0.000174,
+          "feature": "diff_net_rating",
+          "importance": -0.000546,
+          "importance_std": 7.4e-05,
           "rank": 17
         },
         {
           "feature": "diff_adj_off_rating",
-          "importance": -0.000829,
-          "importance_std": 0.000143,
+          "importance": -0.000784,
+          "importance_std": 0.000163,
           "rank": 18
         },
         {
           "feature": "diff_efficiency_ratio",
-          "importance": -0.001456,
-          "importance_std": 0.000108,
+          "importance": -0.001668,
+          "importance_std": 0.000107,
           "rank": 19
         }
       ]
@@ -780,117 +780,117 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.161219,
-          "accuracy": 0.759505,
-          "log_loss": 0.486264,
+          "brier": 0.161273,
+          "accuracy": 0.761273,
+          "log_loss": 0.487224,
           "n": 1131
         },
         "val_all": {
-          "brier": 0.215236,
-          "accuracy": 0.685564,
-          "log_loss": 0.64132,
+          "brier": 0.216904,
+          "accuracy": 0.679472,
+          "log_loss": 0.642692,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.152617,
-          "accuracy": 0.785124,
-          "log_loss": 0.46618,
+          "brier": 0.155698,
+          "accuracy": 0.77686,
+          "log_loss": 0.472649,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "coef": 1.493069,
-          "abs_coef": 1.493069,
+          "coef": 1.504851,
+          "abs_coef": 1.504851,
           "rank": 1
         },
         {
           "feature": "diff_hot_streak",
-          "coef": -0.301618,
-          "abs_coef": 0.301618,
+          "coef": -0.321152,
+          "abs_coef": 0.321152,
           "rank": 2
         },
         {
           "feature": "neutral_site",
-          "coef": -0.22496,
-          "abs_coef": 0.22496,
+          "coef": -0.197038,
+          "abs_coef": 0.197038,
           "rank": 3
         },
         {
           "feature": "diff_adj_off_rank",
-          "coef": 0.12326,
-          "abs_coef": 0.12326,
+          "coef": 0.101834,
+          "abs_coef": 0.101834,
           "rank": 4
         },
         {
           "feature": "diff_close_game_pct",
-          "coef": 0.102344,
-          "abs_coef": 0.102344,
+          "coef": 0.091079,
+          "abs_coef": 0.091079,
           "rank": 5
         },
         {
-          "feature": "diff_conf_strength",
-          "coef": 0.030086,
-          "abs_coef": 0.030086,
+          "feature": "diff_upset_propensity",
+          "coef": 0.024357,
+          "abs_coef": 0.024357,
           "rank": 6
         },
         {
-          "feature": "diff_upset_propensity",
-          "coef": 0.025804,
-          "abs_coef": 0.025804,
-          "rank": 7
-        },
-        {
           "feature": "diff_experience",
-          "coef": 0.013774,
-          "abs_coef": 0.013774,
-          "rank": 8
-        },
-        {
-          "feature": "diff_srs",
-          "coef": -0.002189,
-          "abs_coef": 0.002189,
-          "rank": 9
+          "coef": 0.008197,
+          "abs_coef": 0.008197,
+          "rank": 7
         },
         {
           "feature": "diff_adj_off_rating",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 10
+          "rank": 8
         },
         {
           "feature": "diff_adj_def_rating",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 11
+          "rank": 9
         },
         {
           "feature": "diff_net_rating",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 12
+          "rank": 10
         },
         {
           "feature": "diff_efficiency_ratio",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 13
+          "rank": 11
         },
         {
           "feature": "diff_adj_def_rank",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 14
+          "rank": 12
         },
         {
           "feature": "diff_pace",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 15
+          "rank": 13
+        },
+        {
+          "feature": "diff_srs",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 14
         },
         {
           "feature": "diff_star_power",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 15
+        },
+        {
+          "feature": "diff_conf_strength",
           "coef": 0.0,
           "abs_coef": 0.0,
           "rank": 16
@@ -926,135 +926,135 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.13434,
-          "accuracy": 0.804923,
-          "log_loss": 0.416689,
+          "brier": 0.147242,
+          "accuracy": 0.789596,
+          "log_loss": 0.450471,
           "n": 4306
         },
         "val_all": {
-          "brier": 0.239696,
-          "accuracy": 0.673718,
-          "log_loss": 0.788133,
+          "brier": 0.232731,
+          "accuracy": 0.674226,
+          "log_loss": 0.743653,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.148528,
-          "accuracy": 0.77686,
-          "log_loss": 0.449252,
+          "brier": 0.139448,
+          "accuracy": 0.842975,
+          "log_loss": 0.429636,
           "n": 121
         }
       },
       "feature_importances": [
         {
-          "feature": "diff_hot_streak",
-          "coef": 1.289805,
-          "abs_coef": 1.289805,
+          "feature": "diff_elo",
+          "coef": 1.393992,
+          "abs_coef": 1.393992,
           "rank": 1
         },
         {
-          "feature": "diff_elo",
-          "coef": 1.178872,
-          "abs_coef": 1.178872,
+          "feature": "diff_hot_streak",
+          "coef": 0.960533,
+          "abs_coef": 0.960533,
           "rank": 2
         },
         {
           "feature": "diff_conf_strength",
-          "coef": 0.526844,
-          "abs_coef": 0.526844,
+          "coef": 0.447925,
+          "abs_coef": 0.447925,
           "rank": 3
         },
         {
           "feature": "diff_srs",
-          "coef": -0.246175,
-          "abs_coef": 0.246175,
+          "coef": -0.389569,
+          "abs_coef": 0.389569,
           "rank": 4
         },
         {
           "feature": "diff_road_win_pct",
-          "coef": -0.221061,
-          "abs_coef": 0.221061,
+          "coef": -0.247469,
+          "abs_coef": 0.247469,
           "rank": 5
         },
         {
           "feature": "neutral_site",
-          "coef": -0.179174,
-          "abs_coef": 0.179174,
+          "coef": -0.221992,
+          "abs_coef": 0.221992,
           "rank": 6
         },
         {
           "feature": "diff_adj_def_rank",
-          "coef": -0.111242,
-          "abs_coef": 0.111242,
+          "coef": -0.090029,
+          "abs_coef": 0.090029,
           "rank": 7
         },
         {
-          "feature": "diff_efficiency_ratio",
-          "coef": 0.071455,
-          "abs_coef": 0.071455,
+          "feature": "diff_close_game_pct",
+          "coef": 0.047947,
+          "abs_coef": 0.047947,
           "rank": 8
         },
         {
           "feature": "diff_adj_off_rating",
-          "coef": 0.057016,
-          "abs_coef": 0.057016,
+          "coef": 0.035623,
+          "abs_coef": 0.035623,
           "rank": 9
         },
         {
-          "feature": "diff_close_game_pct",
-          "coef": 0.050295,
-          "abs_coef": 0.050295,
+          "feature": "diff_adj_off_rank",
+          "coef": 0.033836,
+          "abs_coef": 0.033836,
           "rank": 10
         },
         {
           "feature": "diff_upset_propensity",
-          "coef": 0.034999,
-          "abs_coef": 0.034999,
+          "coef": 0.024407,
+          "abs_coef": 0.024407,
           "rank": 11
         },
         {
           "feature": "diff_net_rating",
-          "coef": -0.022467,
-          "abs_coef": 0.022467,
+          "coef": -0.02215,
+          "abs_coef": 0.02215,
           "rank": 12
         },
         {
-          "feature": "seed_diff",
-          "coef": 0.019399,
-          "abs_coef": 0.019399,
+          "feature": "diff_efficiency_ratio",
+          "coef": 0.022122,
+          "abs_coef": 0.022122,
           "rank": 13
         },
         {
-          "feature": "diff_adj_off_rank",
-          "coef": 0.016756,
-          "abs_coef": 0.016756,
+          "feature": "diff_non_conf_sos",
+          "coef": -0.018926,
+          "abs_coef": 0.018926,
           "rank": 14
         },
         {
-          "feature": "diff_star_power",
-          "coef": 0.000804,
-          "abs_coef": 0.000804,
+          "feature": "diff_pace",
+          "coef": 0.016786,
+          "abs_coef": 0.016786,
           "rank": 15
+        },
+        {
+          "feature": "diff_star_power",
+          "coef": 0.014385,
+          "abs_coef": 0.014385,
+          "rank": 16
+        },
+        {
+          "feature": "diff_experience",
+          "coef": 0.011081,
+          "abs_coef": 0.011081,
+          "rank": 17
         },
         {
           "feature": "diff_adj_def_rating",
           "coef": 0.0,
           "abs_coef": 0.0,
-          "rank": 16
-        },
-        {
-          "feature": "diff_pace",
-          "coef": 0.0,
-          "abs_coef": 0.0,
-          "rank": 17
-        },
-        {
-          "feature": "diff_experience",
-          "coef": 0.0,
-          "abs_coef": 0.0,
           "rank": 18
         },
         {
-          "feature": "diff_non_conf_sos",
+          "feature": "seed_diff",
           "coef": 0.0,
           "abs_coef": 0.0,
           "rank": 19
@@ -1072,135 +1072,135 @@
       },
       "metrics": {
         "train": {
-          "brier": 0.139512,
-          "accuracy": 0.798885,
-          "log_loss": 0.431598,
+          "brier": 0.15006,
+          "accuracy": 0.780771,
+          "log_loss": 0.458616,
           "n": 4306
         },
         "val_all": {
-          "brier": 0.226257,
-          "accuracy": 0.679472,
-          "log_loss": 0.711445,
+          "brier": 0.223234,
+          "accuracy": 0.67981,
+          "log_loss": 0.695577,
           "n": 5909
         },
         "val_post": {
-          "brier": 0.143815,
-          "accuracy": 0.801653,
-          "log_loss": 0.439971,
+          "brier": 0.14042,
+          "accuracy": 0.826446,
+          "log_loss": 0.433485,
           "n": 121
         }
       },
       "feature_importances": [
         {
           "feature": "diff_elo",
-          "coef": 1.48759,
-          "abs_coef": 1.48759,
+          "coef": 1.61304,
+          "abs_coef": 1.61304,
           "rank": 1
         },
         {
           "feature": "diff_hot_streak",
-          "coef": 0.658362,
-          "abs_coef": 0.658362,
+          "coef": 0.473176,
+          "abs_coef": 0.473176,
           "rank": 2
         },
         {
           "feature": "diff_srs",
-          "coef": -0.359303,
-          "abs_coef": 0.359303,
+          "coef": -0.434178,
+          "abs_coef": 0.434178,
           "rank": 3
         },
         {
           "feature": "diff_conf_strength",
-          "coef": 0.317776,
-          "abs_coef": 0.317776,
+          "coef": 0.277215,
+          "abs_coef": 0.277215,
           "rank": 4
         },
         {
           "feature": "neutral_site",
-          "coef": -0.204171,
-          "abs_coef": 0.204171,
+          "coef": -0.228376,
+          "abs_coef": 0.228376,
           "rank": 5
         },
         {
           "feature": "diff_road_win_pct",
-          "coef": -0.130018,
-          "abs_coef": 0.130018,
+          "coef": -0.139097,
+          "abs_coef": 0.139097,
           "rank": 6
         },
         {
-          "feature": "diff_adj_def_rank",
-          "coef": -0.111628,
-          "abs_coef": 0.111628,
+          "feature": "diff_adj_off_rank",
+          "coef": 0.100955,
+          "abs_coef": 0.100955,
           "rank": 7
         },
         {
-          "feature": "diff_close_game_pct",
-          "coef": 0.092304,
-          "abs_coef": 0.092304,
+          "feature": "diff_adj_def_rank",
+          "coef": -0.098988,
+          "abs_coef": 0.098988,
           "rank": 8
         },
         {
-          "feature": "diff_adj_off_rating",
-          "coef": 0.086888,
-          "abs_coef": 0.086888,
+          "feature": "diff_close_game_pct",
+          "coef": 0.088988,
+          "abs_coef": 0.088988,
           "rank": 9
         },
         {
-          "feature": "diff_adj_off_rank",
-          "coef": 0.084113,
-          "abs_coef": 0.084113,
+          "feature": "diff_adj_off_rating",
+          "coef": 0.080225,
+          "abs_coef": 0.080225,
           "rank": 10
         },
         {
           "feature": "diff_upset_propensity",
-          "coef": 0.052676,
-          "abs_coef": 0.052676,
+          "coef": 0.046309,
+          "abs_coef": 0.046309,
           "rank": 11
         },
         {
           "feature": "diff_net_rating",
-          "coef": -0.026131,
-          "abs_coef": 0.026131,
+          "coef": -0.026822,
+          "abs_coef": 0.026822,
           "rank": 12
         },
         {
-          "feature": "diff_efficiency_ratio",
-          "coef": 0.021146,
-          "abs_coef": 0.021146,
+          "feature": "diff_star_power",
+          "coef": 0.024471,
+          "abs_coef": 0.024471,
           "rank": 13
         },
         {
-          "feature": "diff_star_power",
-          "coef": 0.017752,
-          "abs_coef": 0.017752,
+          "feature": "diff_experience",
+          "coef": 0.020016,
+          "abs_coef": 0.020016,
           "rank": 14
         },
         {
-          "feature": "seed_diff",
-          "coef": 0.017724,
-          "abs_coef": 0.017724,
+          "feature": "diff_pace",
+          "coef": 0.014681,
+          "abs_coef": 0.014681,
           "rank": 15
-        },
-        {
-          "feature": "diff_experience",
-          "coef": 0.00879,
-          "abs_coef": 0.00879,
-          "rank": 16
-        },
-        {
-          "feature": "diff_non_conf_sos",
-          "coef": 0.001464,
-          "abs_coef": 0.001464,
-          "rank": 17
         },
         {
           "feature": "diff_adj_def_rating",
           "coef": 0.0,
           "abs_coef": 0.0,
+          "rank": 16
+        },
+        {
+          "feature": "diff_efficiency_ratio",
+          "coef": 0.0,
+          "abs_coef": 0.0,
+          "rank": 17
+        },
+        {
+          "feature": "diff_non_conf_sos",
+          "coef": 0.0,
+          "abs_coef": 0.0,
           "rank": 18
         },
         {
-          "feature": "diff_pace",
+          "feature": "seed_diff",
           "coef": 0.0,
           "abs_coef": 0.0,
           "rank": 19

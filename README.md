@@ -323,8 +323,8 @@ project root/
 
 ```
 Prediction model (train.py --all):
-  LogReg  full  post+conf+weighted   Brier=0.1438  Acc=80.7%  n=121  ← current best
-  HistGBT trimmed  post+conf         Brier=0.1478  Acc=77.7%  n=121
+  LogReg  full  post+conf	     Brier=0.1394  Acc=84.3%  n=121  ← current best
+  HistGBT trimmed  post+conf         Brier=0.1521  Acc=78.5%  n=121
 
 Simulation (validation/simulation.py):
   R64 Brier should be close to ~0.144 (same as prediction model)
