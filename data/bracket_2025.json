@@ -1,0 +1,57 @@
+{
+  "regions": {
+    "South": {
+      "matchups": [
+        {"slot": "S_R1_G1", "team_a": "Auburn",       "seed_a": 1,  "team_b": "Alabama St",    "seed_b": 16},
+        {"slot": "S_R1_G2", "team_a": "Louisville",   "seed_a": 8,  "team_b": "Creighton",     "seed_b": 9},
+        {"slot": "S_R1_G3", "team_a": "Michigan",     "seed_a": 5,  "team_b": "UC San Diego",  "seed_b": 12},
+        {"slot": "S_R1_G4", "team_a": "Texas A&M",    "seed_a": 4,  "team_b": "Yale",          "seed_b": 13},
+        {"slot": "S_R1_G5", "team_a": "Ole Miss",     "seed_a": 6,  "team_b": "North Carolina","seed_b": 11},
+        {"slot": "S_R1_G6", "team_a": "Iowa St",      "seed_a": 3,  "team_b": "Lipscomb",      "seed_b": 14},
+        {"slot": "S_R1_G7", "team_a": "Marquette",    "seed_a": 7,  "team_b": "New Mexico",    "seed_b": 10},
+        {"slot": "S_R1_G8", "team_a": "Michigan St",  "seed_a": 2,  "team_b": "Bryant",        "seed_b": 15}
+      ]
+    },
+    "East": {
+      "matchups": [
+        {"slot": "E_R1_G1", "team_a": "Duke",          "seed_a": 1,  "team_b": "Mount St Mary's",  "seed_b": 16},
+        {"slot": "E_R1_G2", "team_a": "Mississippi St","seed_a": 8,  "team_b": "Baylor",           "seed_b": 9},
+        {"slot": "E_R1_G3", "team_a": "Oregon",        "seed_a": 5,  "team_b": "Liberty",          "seed_b": 12},
+        {"slot": "E_R1_G4", "team_a": "Arizona",       "seed_a": 4,  "team_b": "Akron",            "seed_b": 13},
+        {"slot": "E_R1_G5", "team_a": "BYU",           "seed_a": 6,  "team_b": "VCU",              "seed_b": 11},
+        {"slot": "E_R1_G6", "team_a": "Wisconsin",     "seed_a": 3,  "team_b": "Montana",          "seed_b": 14},
+        {"slot": "E_R1_G7", "team_a": "Saint Mary's",  "seed_a": 7,  "team_b": "Vanderbilt",       "seed_b": 10},
+        {"slot": "E_R1_G8", "team_a": "Alabama",       "seed_a": 2,  "team_b": "Robert Morris",    "seed_b": 15}
+      ]
+    },
+    "West": {
+      "matchups": [
+        {"slot": "W_R1_G1", "team_a": "Florida",      "seed_a": 1,  "team_b": "Norfolk St",    "seed_b": 16},
+        {"slot": "W_R1_G2", "team_a": "UConn",        "seed_a": 8,  "team_b": "Oklahoma",      "seed_b": 9},
+        {"slot": "W_R1_G3", "team_a": "Memphis",      "seed_a": 5,  "team_b": "Colorado St",   "seed_b": 12},
+        {"slot": "W_R1_G4", "team_a": "Maryland",     "seed_a": 4,  "team_b": "Grand Canyon",  "seed_b": 13},
+        {"slot": "W_R1_G5", "team_a": "Missouri",     "seed_a": 6,  "team_b": "Drake",         "seed_b": 11},
+        {"slot": "W_R1_G6", "team_a": "Texas Tech",   "seed_a": 3,  "team_b": "UNC Wilmington","seed_b": 14},
+        {"slot": "W_R1_G7", "team_a": "Kansas",       "seed_a": 7,  "team_b": "Arkansas",      "seed_b": 10},
+        {"slot": "W_R1_G8", "team_a": "St John's",    "seed_a": 2,  "team_b": "Omaha",         "seed_b": 15}
+      ]
+    },
+    "Midwest": {
+      "matchups": [
+        {"slot": "M_R1_G1", "team_a": "Houston",      "seed_a": 1,  "team_b": "SIUE",          "seed_b": 16},
+        {"slot": "M_R1_G2", "team_a": "Gonzaga",      "seed_a": 8,  "team_b": "Georgia",       "seed_b": 9},
+        {"slot": "M_R1_G3", "team_a": "Clemson",      "seed_a": 5,  "team_b": "McNeese",       "seed_b": 12},
+        {"slot": "M_R1_G4", "team_a": "Purdue",       "seed_a": 4,  "team_b": "High Point",    "seed_b": 13},
+        {"slot": "M_R1_G5", "team_a": "Illinois",     "seed_a": 6,  "team_b": "Texas",         "seed_b": 11},
+        {"slot": "M_R1_G6", "team_a": "Kentucky",     "seed_a": 3,  "team_b": "Troy",          "seed_b": 14},
+        {"slot": "M_R1_G7", "team_a": "UCLA",         "seed_a": 7,  "team_b": "Utah St",       "seed_b": 10},
+        {"slot": "M_R1_G8", "team_a": "Tennessee",    "seed_a": 2,  "team_b": "Wofford",       "seed_b": 15}
+      ]
+    }
+  },
+  "final_four_slots": {
+    "SF1": {"feeds_from": ["South_winner", "East_winner"]},
+    "SF2": {"feeds_from": ["West_winner", "Midwest_winner"]},
+    "Championship": {"feeds_from": ["SF1_winner", "SF2_winner"]}
+  }
+}

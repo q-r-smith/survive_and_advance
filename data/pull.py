@@ -163,6 +163,11 @@ def main(force=False):
     print("=" * 50)
     features_by_season = build_features(data, all_seasons)
 
+    import joblib
+    feat_pkl_path = os.path.join(CACHE_DIR, "features_by_season.pkl")
+    joblib.dump(features_by_season, feat_pkl_path)
+    print(f"  saved features_by_season → {feat_pkl_path}")
+
     print("\n" + "=" * 50)
     print("STEP 3 — Build train / val splits")
     print("=" * 50)
