@@ -44,7 +44,7 @@ st.sidebar.caption("This Is March — NCAA Bracket Model")
 
 @st.cache_resource(show_spinner="Loading model...")
 def load_model(model_name: str):
-    if model_name == "LogReg (A3)":
+    if model_name == "LogReg (post+conf)":
         from models.logistic_predictor import LogisticPredictor
         return LogisticPredictor.load()
     else:
@@ -61,8 +61,13 @@ def load_features():
 
 
 @st.cache_data(show_spinner="Running simulation...")
-def run_simulation(model_name: str, season: int, n_sims: int):
-    from validation.simulation import BracketSimulator
+def run_simulation(
+    model_name: str, season: int, n_sims: int,
+    dampen_strength: float = 1.0,
+    noise_sigma: float = 0.0,
+    chaos_fraction: float = 0.0,
+):
+    from validation.simulation import BracketSimulator, ROUND_ALPHAS
 
     features_by_season = load_features()
     if features_by_season is None:
@@ -74,37 +79,43 @@ def run_simulation(model_name: str, season: int, n_sims: int):
 
     model = load_model(model_name)
 
+    # Scale ROUND_ALPHAS by dampen_strength.
+    # dampen_strength=1.0 → full dampening (use ROUND_ALPHAS as-is)
+    # dampen_strength=0.0 → no dampening (all alphas = 1.0, raw model probs)
+    round_alphas = {r: 1.0 - (1.0 - a) * dampen_strength for r, a in ROUND_ALPHAS.items()}
+
+    sim_kwargs = dict(
+        model=model,
+        features_2025=features,
+        n_simulations=n_sims,
+        round_alphas=round_alphas,
+        noise_sigma=noise_sigma,
+        chaos_fraction=chaos_fraction,
+    )
+
     bracket_path = Path(f"data/bracket_{season}.json")
     if season >= 2026 and bracket_path.exists():
-        sim = BracketSimulator(
-            model=model,
-            features_2025=features,
-            bracket_path=str(bracket_path),
-            n_simulations=n_sims,
-        )
+        sim = BracketSimulator(bracket_path=str(bracket_path), **sim_kwargs)
         with open(bracket_path) as f:
             bracket_json = json.load(f)
     else:
         from data.bracket_builder import build_bracket_from_cache
         bracket_data = build_bracket_from_cache(season)
-        sim = BracketSimulator(
-            model=model,
-            features_2025=features,
-            bracket_data=bracket_data,
-            n_simulations=n_sims,
-        )
+        sim = BracketSimulator(bracket_data=bracket_data, **sim_kwargs)
         bracket_json = bracket_data["bracket"]
 
     results = sim.simulate()
     return results, sim.prob_matrix, sim.prob_matrix_unseeded, bracket_json
 
 
-def _ensure_simulation(model_choice, season, n_sims):
+def _ensure_simulation(model_choice, season, n_sims, dampen_strength, noise_sigma, chaos_fraction):
     """Load simulation into session_state if not already present or settings changed."""
-    key = (model_choice, season, n_sims)
+    key = (model_choice, season, n_sims, dampen_strength, noise_sigma, chaos_fraction)
     if st.session_state.get("_sim_key") != key or "sim_results" not in st.session_state:
         with st.spinner("Running simulation..."):
-            results, pm, pmu, bj = run_simulation(model_choice, season, n_sims)
+            results, pm, pmu, bj = run_simulation(
+                model_choice, season, n_sims, dampen_strength, noise_sigma, chaos_fraction
+            )
         if results is None:
             st.error("Could not load features or bracket. Run `python data/pull.py` first.")
             st.stop()
@@ -439,17 +450,35 @@ if page == "🏆 Brackets":
     st.title("🏀 This Is March — Bracket Explorer")
 
     st.sidebar.header("Settings")
-    model_choice = st.sidebar.selectbox("Model", ["LogReg (A3)", "HistGBT"])
+    model_choice = st.sidebar.selectbox("Model", ["LogReg (post+conf)", "HistGBT (trimmed post+conf)"])
     season       = st.sidebar.selectbox("Season", [2026, 2025, 2024, 2023, 2022])
     n_sims       = st.sidebar.select_slider(
         "Simulations", options=[1_000, 5_000, 10_000, 25_000, 50_000], value=10_000
     )
+
+    with st.sidebar.expander("Simulation Tuning", expanded=False):
+        dampen_strength = st.slider(
+            "Dampening", 0.0, 1.0, 1.0, 0.05,
+            help="Compresses win probabilities toward 50/50 in later rounds. "
+                 "1.0 = default round-aware dampening. 0.0 = raw model probabilities.",
+        )
+        noise_sigma = st.slider(
+            "Noise σ", 0.0, 0.15, 0.0, 0.01,
+            help="Gaussian noise added to each game's probability before resolving. "
+                 "Adds game-day variance. 0.0 = off.",
+        )
+        chaos_fraction = st.slider(
+            "Chaos Fraction", 0.0, 0.50, 0.0, 0.05,
+            help="Fraction of simulations run with aggressive dampening + noise (chaos mode). "
+                 "Blends the chaos results in with normal sims to fatten the upset tail. 0.0 = off.",
+        )
+
     run_btn = st.sidebar.button("Run Simulation", type="primary", use_container_width=True)
 
     if run_btn:
         st.session_state.pop("_sim_key", None)  # force refresh
 
-    _ensure_simulation(model_choice, season, n_sims)
+    _ensure_simulation(model_choice, season, n_sims, dampen_strength, noise_sigma, chaos_fraction)
 
     results              = st.session_state["sim_results"]
     prob_matrix          = st.session_state["prob_matrix"]
@@ -489,13 +518,30 @@ elif page == "🖊️ My Bracket":
     )
 
     st.sidebar.header("Settings")
-    model_choice = st.sidebar.selectbox("Model", ["LogReg (A3)", "HistGBT"])
+    model_choice = st.sidebar.selectbox("Model", ["LogReg (post+conf)", "HistGBT (trimmed post+conf)"])
     season       = st.sidebar.selectbox("Season", [2026, 2025, 2024, 2023, 2022])
     n_sims       = st.sidebar.select_slider(
         "Simulations", options=[1_000, 5_000, 10_000, 25_000, 50_000], value=10_000
     )
 
-    _ensure_simulation(model_choice, season, n_sims)
+    with st.sidebar.expander("Simulation Tuning", expanded=False):
+        dampen_strength = st.slider(
+            "Dampening", 0.0, 1.0, 1.0, 0.05,
+            help="Compresses win probabilities toward 50/50 in later rounds. "
+                 "1.0 = default round-aware dampening. 0.0 = raw model probabilities.",
+        )
+        noise_sigma = st.slider(
+            "Noise σ", 0.0, 0.15, 0.0, 0.01,
+            help="Gaussian noise added to each game's probability before resolving. "
+                 "Adds game-day variance. 0.0 = off.",
+        )
+        chaos_fraction = st.slider(
+            "Chaos Fraction", 0.0, 0.50, 0.0, 0.05,
+            help="Fraction of simulations run with aggressive dampening + noise (chaos mode). "
+                 "Blends the chaos results in with normal sims to fatten the upset tail. 0.0 = off.",
+        )
+
+    _ensure_simulation(model_choice, season, n_sims, dampen_strength, noise_sigma, chaos_fraction)
 
     results      = st.session_state["sim_results"]
     pm           = st.session_state["prob_matrix"]
@@ -594,7 +640,7 @@ elif page == "⚡ Matchup Simulator":
     )
 
     st.sidebar.header("Settings")
-    model_choice = st.sidebar.selectbox("Model", ["LogReg (A3)", "HistGBT"])
+    model_choice = st.sidebar.selectbox("Model", ["LogReg (post+conf)", "HistGBT (trimmed post+conf)"])
     season       = st.sidebar.selectbox("Season", [2026, 2025, 2024])
 
     features_by_season = load_features()

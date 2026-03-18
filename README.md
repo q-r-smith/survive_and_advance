@@ -100,7 +100,9 @@ python train.py --all
 #   models/ensemble_predictor.pkl     ← ensemble model (if --ensemble)
 
 # Current best result to expect:
-#   LogReg  full  post+conf+weighted  Brier=0.1441  Acc=81.0%  n=121
+#   LogReg  full  post+conf (unweighted)  Brier=0.1394  Acc=84.3%  n=121  ← current best
+#   LogReg  full  post+conf+weighted      Brier=0.1404  Acc=82.6%  n=121
+#   HistGBT trimmed  post+conf            Brier=0.1521  Acc=78.5%  n=121
 ```
 
 ---
@@ -123,10 +125,10 @@ print('R1 games:', len(b['rounds'][1]))
 
 ---
 
-## 4. Run tournament simulation (2025)
+## 5. Run tournament simulation
 
 ```bash
-# Default — LogReg model, 10k simulations, top 20 teams
+# Default — LogReg model, 10k simulations, top 20 teams, no randomness adjustments
 python validation/simulation.py
 
 # Score simulation against actual 2025 results (bracket reconstructed from cache)
@@ -155,12 +157,44 @@ results.print_summary(top_n=20)
 "
 ```
 
----
+### Randomness adjustment flags
 
-## 5. Backtest simulation against historical tournaments
+The simulator supports three independent levers for reducing chalk bias — the
+tendency of the model to over-represent 1-seeds in Final Four outcomes. These
+flags can be combined freely. See Section 9 for background on how each works.
 
 ```bash
-# Backtest all available years (2019–2024, skips 2020)
+# Round-specific win probability dampening
+# Compresses probabilities toward 50/50 with a per-round alpha (6 values: R64 → Champ)
+# Default alphas: 1.0 0.95 0.85 0.75 0.65 0.60
+python validation/simulation.py --round-alphas 1.0 0.95 0.85 0.75 0.65 0.60
+
+# Per-game Gaussian noise injection (sigma=0.0 disables — default)
+# Adds N(0, sigma) to each game probability before resolving, clipped to [0.05, 0.95]
+python validation/simulation.py --noise-sigma 0.05
+
+# Chaos mode — blend of normal + aggressive simulations (fraction=0.0 disables — default)
+# Runs chaos_fraction of sims with CHAOS_ALPHAS + chaos_sigma, blends into output
+python validation/simulation.py --chaos-fraction 0.3
+python validation/simulation.py --chaos-fraction 0.3 --chaos-sigma 0.08  # default sigma
+
+# Recommended combination — matches historical Final Four seed distribution well
+python validation/simulation.py --n-sims 10000 --noise-sigma 0.05 --chaos-fraction 0.3
+
+# Push harder toward historical rates (1-seeds closer to ~40%)
+python validation/simulation.py --n-sims 10000 --noise-sigma 0.05 --chaos-fraction 0.5
+
+# Full production run — 50k sims, all adjustments, save output
+python validation/simulation.py --n-sims 50000 --noise-sigma 0.05 --chaos-fraction 0.3 \
+    --save data/cache/sim_results_2026.pkl
+```
+
+---
+
+## 6. Backtest simulation against historical tournaments
+
+```bash
+# Backtest all available years (2016-2025, skips 2020)
 python validation/backtest.py
 
 # Specific years only
@@ -179,7 +213,7 @@ python validation/backtest.py --model histgbt  --seasons 2022 2023 2024
 
 ---
 
-## 6. Full pipeline — run everything fresh
+## 7. Full pipeline — run everything fresh
 
 ```bash
 # Step 1: Pull data (skip if cache is fresh)
@@ -191,16 +225,17 @@ python -m validation.calibration --logistic --histgbt --n-iter 60 --weighted-cv
 # Step 3: Train all models
 python train.py --all
 
-# Step 4: Run 2025 simulation
-python validation/simulation.py --n-sims 10000 --save data/cache/sim_results_2025.pkl
+# Step 4: Run 2026 simulation with recommended randomness settings
+python validation/simulation.py --n-sims 50000 --noise-sigma 0.05 --chaos-fraction 0.3 \
+    --save data/cache/sim_results_2026.pkl
 
 # Step 5: Backtest
-python validation/backtest.py --seasons 2022 2023 2024
+python validation/backtest.py
 ```
 
 ---
 
-## 7. Typical iteration loop (after initial setup)
+## 8. Typical iteration loop (after initial setup)
 
 When you've changed features or model code:
 
@@ -218,69 +253,94 @@ python -m validation.calibration --logistic --n-iter 60
 python train.py --all
 
 # 5. Re-run simulation if model improved
-python validation/simulation.py --n-sims 10000
+python validation/simulation.py --n-sims 10000 --noise-sigma 0.05 --chaos-fraction 0.3
 ```
 
 ---
 
-## 8. Useful one-liners for inspection
+## 9. Chalk bias — background and what was done
 
-```bash
-# Check what's in the feature matrix
-python -c "
-import pandas as pd
-X = pd.read_csv('data/cache/X_train.csv')
-print('Shape:', X.shape)
-print('Columns:', X.columns.tolist())
-print('Season types:', X['season_type'].value_counts().to_dict())
-"
+Out of the box, the simulation produced too many 1-seeds in the Final Four
+(~48.6% of Final Four slots) relative to the historical tournament rate (~40%).
+This is a compound effect: even a small per-game edge for top seeds multiplies
+across six rounds.
 
-# Check available team names in 2025 features (for bracket alignment)
-python -c "
-import joblib
-fs = joblib.load('data/cache/features_by_season.pkl')
-print(sorted(fs[2025].keys()))
-"
+Four changes were made to address this:
 
-# Print current best params
-python -c "
-import json
-print('HistGBT:')
-print(json.dumps(json.load(open('models/best_params.json')), indent=2))
-print('LogReg:')
-print(json.dumps(json.load(open('models/best_logistic_params.json')), indent=2))
-"
+### Feature change: momentum decay (features/builder.py)
 
-# Quick feature importance check without retraining
-python -c "
-import joblib, pandas as pd
-model = joblib.load('models/logistic_predictor.pkl')
-coefs = model.pipeline.named_steps['clf'].coef_[0]
-feat_df = pd.DataFrame({'feature': model.feature_cols, 'coef': coefs})
-feat_df['abs'] = feat_df['coef'].abs()
-print(feat_df.sort_values('abs', ascending=False).to_string(index=False))
-"
+`compute_hot_streak` was updated to use a split-window recency weight rather
+than a flat exponential over the last 10 games. The last 5 games are weighted
+2x; games 6-15 are weighted 1x. This makes the feature more sensitive to teams
+genuinely peaking in March vs. teams that were hot in December.
 
-# Check which seasons are in features cache
-python -c "
-import joblib
-fs = joblib.load('data/cache/features_by_season.pkl')
-print('Available seasons:', sorted(fs.keys()))
-print('Teams in 2025:', len(fs.get(2025, {})))
-"
+This was a model-level change — it required `python data/pull.py` to rebuild
+the feature cache and `python train.py --all` to retrain. The result was a
+meaningful Brier improvement (see Section 10). A secondary effect: the
+unweighted LogReg variant (A2) became the new best model, narrowly beating
+the previously top-ranked weighted variant (A3). The momentum decay feature
+now does the recency work that sample weighting was previously compensating for.
 
-# Count postseason rows per season in training data
-python -c "
-import pandas as pd
-X = pd.read_csv('data/cache/X_train.csv')
-post = X[X['season_type'] == 'postseason']
-print(post.groupby('season').size().to_string())
-"
+### Simulation change: seed_diff removed from Elite 8 onward
+
+`seed_diff` is excluded from the matchup features for rounds 4-6 (Elite 8,
+Final Four, Championship). In late rounds, all remaining teams are strong —
+1-seeds should not receive a name-based model advantage against a 4-seed that
+has earned its spot.
+
+### Simulation change: round-specific probability dampening
+
+A `dampen(p, round_num)` function applies a per-round alpha to compress all
+win probabilities toward 50/50. The formula is:
+
 ```
+p_adjusted = 0.5 + (p_raw - 0.5) * alpha
+```
+
+Default alphas: `{1: 1.0, 2: 0.95, 3: 0.85, 4: 0.75, 5: 0.65, 6: 0.60}`
+
+R64 is untouched (seeds matter most early). The compression tightens each
+round, reflecting that late-round games are historically less predictable
+regardless of team quality. Override with `--round-alphas`.
+
+### Simulation change: per-game Gaussian noise injection
+
+Before resolving each game, a random perturbation is added to the probability:
+
+```
+p_noisy = clip(p_adjusted + N(0, sigma), 0.05, 0.95)
+```
+
+This simulates game-day variance — foul trouble, shooting streaks, pace
+mismatches — that the model cannot capture from season averages alone.
+Default sigma is 0.0 (disabled). Recommended: `--noise-sigma 0.05`.
+
+### Simulation change: chaos mode
+
+A fraction of simulations run with more aggressive alphas (`CHAOS_ALPHAS`:
+`{1: 0.90, 2: 0.80, 3: 0.70, 4: 0.60, 5: 0.50, 6: 0.45}`) and a higher
+noise sigma (default 0.08). The results are blended into the main output,
+producing a fatter tail on upset outcomes without fully discarding the model's
+signal. Recommended: `--chaos-fraction 0.3`.
+
+### Results
+
+| Seed group | Baseline | Dampened+Noise+Chaos | Historical target |
+| ---------- | -------- | -------------------- | ----------------- |
+| 1-seeds    | 48.6%    | 44.3%                | ~40%              |
+| 2-seeds    | 18.7%    | 18.6%                | ~20%              |
+| 3-seeds    | 10.2%    | 10.4%                | ~10%              |
+| 4-12+      | 22.5%    | 26.7%                | ~30%              |
+
+Settings used: `--noise-sigma 0.05 --chaos-fraction 0.3`
+
+The 1-seed rate moved from 48.6% → 44.3% and the 4-12+ rate increased from
+22.5% → 26.7%, moving meaningfully toward historical norms. To push 1-seeds
+closer to the ~40% target, increase `--chaos-fraction` to 0.5.
 
 ---
 
-## 9. File structure reference
+## 10. File structure reference
 
 ```
 project root/
@@ -293,12 +353,12 @@ project root/
 │   │   ├── y_train.csv         ← training labels
 │   │   ├── X_val.csv           ← validation feature matrix
 │   │   ├── y_val.csv           ← validation labels
-│   │   └── features_by_season.pkl  ← per-team features for simulation
+│   │   └── features_by_season.pkl  ← per-team features dict (needed for simulation)
 │   └── brackets/
 │       ├── bracket_2025.json   ← 2025 tournament bracket
 │       └── bracket_{year}.json ← historical brackets (for backtest)
 ├── features/
-│   └── builder.py              ← all feature engineering
+│   └── builder.py              ← all feature engineering (incl. momentum decay)
 ├── models/
 │   ├── game_predictor_model.py     ← HistGBT wrapper
 │   ├── logistic_predictor.py       ← LogReg wrapper
@@ -310,7 +370,7 @@ project root/
 │   └── logistic_predictor.pkl      ← saved LogReg model
 ├── validation/
 │   ├── calibration.py          ← hyperparameter search
-│   ├── simulation.py           ← Monte Carlo bracket simulator
+│   ├── simulation.py           ← Monte Carlo bracket simulator (+ dampening/noise/chaos)
 │   └── backtest.py             ← historical simulation backtesting
 ├── train.py                    ← main training + evaluation script
 ├── requirements.txt
@@ -319,19 +379,26 @@ project root/
 
 ---
 
-## 10. Current benchmark — what good looks like
+## 11. Current benchmarks — what good looks like
 
 ```
 Prediction model (train.py --all):
-  LogReg  full  post+conf	     Brier=0.1394  Acc=84.3%  n=121  ← current best
-  HistGBT trimmed  post+conf         Brier=0.1521  Acc=78.5%  n=121
+  LogReg  full  post+conf (unweighted)  Brier=0.1394  Acc=84.3%  n=121  ← current best
+  LogReg  full  post+conf+weighted      Brier=0.1404  Acc=82.6%  n=121
+  HistGBT trimmed  post+conf            Brier=0.1521  Acc=78.5%  n=121
 
 Simulation (validation/simulation.py):
-  R64 Brier should be close to ~0.144 (same as prediction model)
+  R64 Brier should be close to ~0.139 (same as prediction model)
   Overall Brier will be higher (~0.17-0.19) due to round compounding
   Calibration max gap should be < 0.05 across all probability bins
 
+Final Four seed distribution (10k sims, --noise-sigma 0.05 --chaos-fraction 0.3):
+  1-seeds: ~44%   (historical target ~40%)
+  2-seeds: ~19%   (historical target ~20%)
+  3-seeds: ~10%   (historical target ~10%)
+  4-12+:   ~27%   (historical target ~30%)
+
 Backtest (validation/backtest.py):
-  Average Brier across 2019-2026: target < 0.18
-  Year-to-year variance: expected, some years are upset-heavy
+  Average Brier across 2016-2025: target < 0.18
+  Year-to-year variance: expected — some years are upset-heavy
 ```

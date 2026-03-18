@@ -83,11 +83,11 @@ def main():
     if args.model == "logistic":
         from models.logistic_predictor import LogisticPredictor
         model = LogisticPredictor.load()
-        print("Model: LogisticPredictor (post+conf+weighted — A3 best)\n")
+        print("Model: LogisticPredictor (full post+conf unweighted — new best)\n")
     else:
         from models.game_predictor_model import GamePredictor
         model = GamePredictor.load()
-        print("Model: GamePredictor (HistGBT baseline)\n")
+        print("Model: GamePredictor (HistGBT trimmed post+conf)\n")
 
     # Run backtest
     all_metrics = {}

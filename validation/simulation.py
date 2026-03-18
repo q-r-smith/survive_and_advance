@@ -688,7 +688,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NCAA tournament bracket simulator")
     parser.add_argument("--n-sims",        type=int,   default=10_000)
     parser.add_argument("--model",         choices=["logistic", "histgbt"], default="logistic")
-    parser.add_argument("--season",        type=int,   default=2025)
+    parser.add_argument("--season",        type=int,   default=2026)
     parser.add_argument("--top-n",         type=int,   default=20)
     parser.add_argument("--score",         action="store_true",
                         help="Score simulation against actual results")
@@ -728,11 +728,11 @@ if __name__ == "__main__":
     if args.model == "logistic":
         from models.logistic_predictor import LogisticPredictor
         model = LogisticPredictor.load()
-        print("  Loaded: LogisticPredictor (post+conf+weighted — A3 best)")
+        print("  Loaded: LogisticPredictor (full post+conf unweighted — new best)")
     else:
         from models.game_predictor_model import GamePredictor
         model = GamePredictor.load()
-        print("  Loaded: GamePredictor (HistGBT baseline)")
+        print("  Loaded: GamePredictor (HistGBT trimmed post+conf)")
 
     # Determine bracket source:
     #   >= 2026 → use manually entered bracket_{season}.json (in-progress / future)
