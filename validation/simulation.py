@@ -30,16 +30,34 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # Maps bracket display names → API names used in features_by_season
 
 NAME_FIXES = {
-    "Alabama St":     "Alabama State",
-    "Colorado St":    "Colorado State",
-    "Iowa St":        "Iowa State",
-    "Michigan St":    "Michigan State",
-    "Mississippi St": "Mississippi State",
-    "Mount St Mary's":"Mount St. Mary's",
-    "Norfolk St":     "Norfolk State",
-    "SIUE":           "SIU Edwardsville",
-    "St John's":      "St. John's",
-    "Utah St":        "Utah State",
+    # State school abbreviations
+    "Alabama St":      "Alabama State",
+    "Colorado St":     "Colorado State",
+    "Iowa St":         "Iowa State",
+    "Kansas St":       "Kansas State",
+    "Kennesaw St":     "Kennesaw State",
+    "Michigan St":     "Michigan State",
+    "Mississippi St":  "Mississippi State",
+    "Missouri St":     "Missouri State",
+    "Montana St":      "Montana State",
+    "Mount St Mary's": "Mount St. Mary's",
+    "Norfolk St":      "Norfolk State",
+    "Ohio St":         "Ohio State",
+    "Oklahoma St":     "Oklahoma State",
+    "Oregon St":       "Oregon State",
+    "Penn St":         "Penn State",
+    "San Diego St":    "San Diego State",
+    "Tennessee St":    "Tennessee State",
+    "Utah St":         "Utah State",
+    "Weber St":        "Weber State",
+    "Wright St":       "Wright State",
+    # Common abbreviations / bracket display names
+    "SIUE":            "SIU Edwardsville",
+    "St John's":       "St. John's",
+    "Cal Baptist":     "California Baptist",
+    "Long Island":     "Long Island University",
+    # Typos in bracket
+    "Sienna":          "Siena",
 }
 
 
@@ -655,16 +673,35 @@ if __name__ == "__main__":
         model = GamePredictor.load()
         print("  Loaded: GamePredictor (HistGBT baseline)")
 
-    # Build bracket from cache
-    bracket_data = build_bracket_from_cache(args.season)
+    # Determine bracket source:
+    #   >= 2026 → use manually entered bracket_{season}.json (in-progress / future)
+    #   <= 2025 → reconstruct from game cache (historical, scoreable)
+    bracket_data = None
+    json_path = Path(f"data/bracket_{args.season}.json")
+
+    if args.season >= 2026:
+        if not json_path.exists():
+            print(f"ERROR: No bracket JSON at {json_path}.")
+            print("Create data/bracket_{season}.json with the tournament matchups.")
+            sys.exit(1)
+        sim = BracketSimulator(
+            model=model,
+            features_2025=features,
+            bracket_path=str(json_path),
+            n_simulations=args.n_sims,
+        )
+        if args.score:
+            print("NOTE: --score not available for in-progress seasons (no complete results).")
+    else:
+        bracket_data = build_bracket_from_cache(args.season)
+        sim = BracketSimulator(
+            model=model,
+            features_2025=features,
+            bracket_data=bracket_data,
+            n_simulations=args.n_sims,
+        )
 
     # Run simulation
-    sim = BracketSimulator(
-        model=model,
-        features_2025=features,
-        bracket_data=bracket_data,
-        n_simulations=args.n_sims,
-    )
     results = sim.simulate()
     results.print_summary(top_n=args.top_n)
 
@@ -672,8 +709,8 @@ if __name__ == "__main__":
     picks, chalk = generate_chalk_bracket(results, sim.bracket, sim.prob_matrix)
     print_chalk_bracket(picks, sim.prob_matrix)
 
-    # Score against actual results
-    if args.score:
+    # Score against actual results (historical seasons only)
+    if args.score and bracket_data is not None:
         metrics = score_simulation(results, bracket_data, verbose=True)
 
     if args.save:

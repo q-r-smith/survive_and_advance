@@ -50,9 +50,15 @@ def _save(df, path):
 
 def _load_or_fetch(name, fetch_fn, *args, force=False, **kwargs):
     path = _cache_path(name)
-    if not force and os.path.exists(path):
-        print(f"  cache hit  → {path}")
-        return pd.read_csv(path)
+    if not force and os.path.exists(path) and os.path.getsize(path) > 0:
+        try:
+            df = pd.read_csv(path)
+            if len(df) > 0:
+                print(f"  cache hit  → {path}")
+                return df
+        except Exception:
+            pass
+        print(f"  cache corrupt — re-fetching {name} ...")
     print(f"  fetching {name} ...")
     df = fetch_fn(*args, **kwargs)
     _save(df, path)
@@ -186,8 +192,10 @@ def main(force=False):
     # Pull one extra prior season so regular-season games in the first train year
     # (2015) can use leak-free features. build_splits still filters games to
     # TRAIN_SEASONS + VAL_SEASON via the module-level constants.
+    # 2026: pulled for features only (simulation inference target — not in train/val splits)
+    SIM_SEASON = 2026
     # Deduplicate: TRAIN_SEASONS includes VAL_SEASON (2025), so avoid pulling twice
-    all_seasons = list(dict.fromkeys([PRIOR_SEASON] + list(TRAIN_SEASONS) + [VAL_SEASON]))
+    all_seasons = list(dict.fromkeys([PRIOR_SEASON] + list(TRAIN_SEASONS) + [VAL_SEASON, SIM_SEASON]))
 
     print("=" * 50)
     print("STEP 1 — Pull raw data")

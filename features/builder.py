@@ -282,6 +282,8 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     ts = team_stats_df[team_stats_df["season"] == season]
     srs_map = srs_df[srs_df["season"] == season].set_index("team")["rating"].to_dict()
     adj = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").set_index("team")
+    if not adj.index.is_unique:
+        adj = adj.groupby(level=0).first()  # belt-and-suspenders: guarantee scalar .at[] lookups
 
     # Precompute normalized rank maps for the full season
     adj_season = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").copy()

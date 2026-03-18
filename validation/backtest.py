@@ -18,9 +18,9 @@ import joblib
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from data.bracket_builder import build_bracket_from_cache
-from validation.simulation import BracketSimulator, SimulationResults, score_simulation
+from validation.simulation import BracketSimulator, score_simulation
 
-DEFAULT_SEASONS = [2022, 2023, 2024, 2025]
+DEFAULT_SEASONS = [2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025]  # 2020 skipped (no tournament)
 
 
 def backtest_season(
