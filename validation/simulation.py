@@ -6,12 +6,14 @@ NCAA tournament bracket simulation.
    accumulating per-team win probabilities at each round.
 2. Chalk bracket generation — always pick the higher-probability team,
    propagating winners forward correctly.
+3. Scoring — compare simulation win probs against actual tournament results.
 
 Usage:
-    python -m validation.simulation                          # LogReg, 10k sims
-    python -m validation.simulation --model histgbt          # HistGBT baseline
-    python -m validation.simulation --n-sims 50000           # more simulations
-    python -m validation.simulation --save results/sim.pkl   # save results
+    python -m validation.simulation                           # LogReg, 10k sims
+    python -m validation.simulation --model histgbt           # HistGBT baseline
+    python -m validation.simulation --n-sims 50000            # more simulations
+    python -m validation.simulation --season 2023 --score     # score vs actuals
+    python -m validation.simulation --save results/sim.pkl    # save results
 """
 
 import os
@@ -64,38 +66,38 @@ def seed_prob_fallback(seed_a: int, seed_b: int) -> float:
 
 # ── Startup name check ────────────────────────────────────────────────────────
 
-def check_team_names(bracket: dict, features_2025: dict) -> dict:
+def check_team_names(bracket: dict, features: dict) -> dict:
     """
-    Print every bracket team with found/not-found status.
-    Returns dict of {display_name: api_name} for all teams.
+    Print every bracket team with found/not-found status against features keys.
+    Returns {display_name: api_name} for all teams in the bracket.
     """
     found, missing = [], []
-    team_map = {}
+    team_map: dict[str, str] = {}
 
     for region, data in bracket["regions"].items():
         for game in data["matchups"]:
             for key in ("team_a", "team_b"):
-                display = game[key]
+                display  = game[key]
                 api_name = _normalize(display)
                 if api_name not in team_map:
                     team_map[display] = api_name
-                    if api_name in features_2025:
+                    if api_name in features:
                         found.append((display, api_name))
                     else:
                         missing.append((display, api_name))
 
-    print(f"\n  Team name check ({len(found)+len(missing)} teams):")
+    print(f"\n  Team name check ({len(found) + len(missing)} teams):")
     for display, api in sorted(found):
-        tag = "" if display == api else f"  [normalized from '{display}']"
+        tag = f"  [normalized from '{display}']" if display != api else ""
         print(f"    ✓  {api}{tag}")
     for display, api in sorted(missing):
-        print(f"    ✗  {api}  (features missing — seed fallback will be used)"
-              + (f"  [tried normalizing '{display}']" if display != api else ""))
+        tag = f"  [tried normalizing '{display}']" if display != api else ""
+        print(f"    ✗  {api}  (features missing — seed fallback){tag}")
 
     if missing:
-        print(f"\n  WARNING: {len(missing)} team(s) will use seed-based probability fallback.")
+        print(f"\n  WARNING: {len(missing)} team(s) will use seed-based fallback.")
     else:
-        print(f"\n  All {len(found)} teams found in features_2025.")
+        print(f"\n  All {len(found)} teams found in features.")
 
     return team_map
 
@@ -170,27 +172,39 @@ class BracketSimulator:
         model,
         features_2025: dict,
         bracket_path: str = None,
+        bracket_data: dict = None,
         n_simulations: int = 10_000,
         random_state: int = 42,
     ):
-        if bracket_path is None:
-            bracket_path = os.path.join(
-                os.path.dirname(__file__), "..", "data", "bracket_2025.json"
-            )
-
-        with open(bracket_path) as f:
-            self.bracket = json.load(f)
-
         self.model         = model
         self.features_2025 = features_2025
         self.n_simulations = n_simulations
         self.random_state  = random_state
 
-        # Build name map and seed map from bracket
-        self._team_map = check_team_names(self.bracket, features_2025)
+        if bracket_data is not None:
+            # Use reconstructed bracket from build_bracket_from_cache()
+            self._init_from_bracket_data(bracket_data)
+        else:
+            # Load from JSON file
+            if bracket_path is None:
+                bracket_path = os.path.join(
+                    os.path.dirname(__file__), "..", "data", "bracket_2025.json"
+                )
+            with open(bracket_path) as f:
+                self._init_from_json(json.load(f))
 
-        self.team_seeds: dict[str, int] = {}      # api_name → seed
-        self.bracket_teams: list[str]   = []      # api_names in bracket order
+        print(f"\n  Building {len(self.bracket_teams)}×{len(self.bracket_teams)} "
+              f"probability matrix ({len(self.bracket_teams)**2} lookups) ...")
+        self.prob_matrix = self._build_prob_matrix()
+        print(f"  Probability matrix complete.")
+
+    def _init_from_json(self, bracket_json: dict):
+        """Initialize from bracket_2025.json — applies NAME_FIXES normalization."""
+        self.bracket    = bracket_json
+        self._team_map  = check_team_names(self.bracket, self.features_2025)
+
+        self.team_seeds: dict[str, int] = {}
+        self.bracket_teams: list[str]   = []
 
         for region, data in self.bracket["regions"].items():
             for game in data["matchups"]:
@@ -200,15 +214,36 @@ class BracketSimulator:
                         self.team_seeds[api] = game[s_key]
                         self.bracket_teams.append(api)
 
-        print(f"\n  Building {len(self.bracket_teams)}×{len(self.bracket_teams)} "
-              f"probability matrix ({len(self.bracket_teams)**2} lookups) ...")
-        self.prob_matrix = self._build_prob_matrix()
-        print(f"  Probability matrix complete.")
+    def _init_from_bracket_data(self, bracket_data: dict):
+        """
+        Initialize from build_bracket_from_cache() output.
+        Team names are already API names — no NAME_FIXES normalization needed.
+        Uses the pre-reconstructed bracket JSON from bracket_data["bracket"].
+        """
+        self.bracket       = bracket_data["bracket"]
+        self.team_seeds    = {t: s for t, s in bracket_data["seeds"].items()}
+        self.bracket_teams = []
+
+        # Collect teams from R1 matchups (bracket already in JSON format)
+        for region, data in self.bracket["regions"].items():
+            for game in data["matchups"]:
+                for t_key in ("team_a", "team_b"):
+                    team = game[t_key]
+                    if team not in self.bracket_teams:
+                        self.bracket_teams.append(team)
+
+        # Name check (informational — teams already API names)
+        found   = [t for t in self.bracket_teams if t in self.features_2025]
+        missing = [t for t in self.bracket_teams if t not in self.features_2025]
+        print(f"\n  Team check: {len(found)} found, {len(missing)} missing in features")
+        if missing:
+            print(f"  Missing (seed fallback): {missing}")
+        self._team_map = {t: t for t in self.bracket_teams}
 
     def _build_prob_matrix(self) -> dict:
         from features.builder import build_matchup_features
 
-        matrix = {}
+        matrix: dict[str, dict[str, float]] = {}
         teams = self.bracket_teams
 
         for team_a in teams:
@@ -225,8 +260,7 @@ class BracketSimulator:
                 seed_b  = self.team_seeds.get(team_b)
 
                 if feats_a is None or feats_b is None:
-                    p = seed_prob_fallback(seed_a, seed_b)
-                    matrix[team_a][team_b] = p
+                    matrix[team_a][team_b] = seed_prob_fallback(seed_a, seed_b)
                     continue
 
                 matchup = build_matchup_features(
@@ -240,36 +274,26 @@ class BracketSimulator:
 
         return matrix
 
-    def _r1_slot_to_api(self, slot_key: str, team_key: str) -> str:
-        """Look up the API name for a bracket slot's team."""
-        display = None
-        for region, data in self.bracket["regions"].items():
-            for game in data["matchups"]:
-                if game["slot"] == slot_key:
-                    display = game[team_key]
-                    break
-            if display is not None:
-                break
-        return _normalize(display) if display else None
-
     def simulate(self) -> SimulationResults:
         rng = np.random.default_rng(self.random_state)
 
         win_counts = {team: {r: 0 for r in range(1, 7)} for team in self.bracket_teams}
 
-        # Pre-build R1 game list (api names) for fast iteration
+        # Pre-build R1 game list (API names) for fast loop iteration
         r1_games = []
         for region, data in self.bracket["regions"].items():
             for game in data["matchups"]:
+                team_a = _normalize(game["team_a"])
+                team_b = _normalize(game["team_b"])
                 r1_games.append({
                     "slot":   game["slot"],
-                    "team_a": _normalize(game["team_a"]),
-                    "team_b": _normalize(game["team_b"]),
+                    "team_a": team_a,
+                    "team_b": team_b,
                     "region": region,
                 })
 
         for _ in range(self.n_simulations):
-            survivors: dict[str, str] = {}  # slot_id → api_name of winner
+            survivors: dict[str, str] = {}
 
             # Round 1 — R64
             for game in r1_games:
@@ -284,7 +308,7 @@ class BracketSimulator:
                 prefix   = region[0]
                 r1_slots = [f"{prefix}_R1_G{i}" for i in range(1, 9)]
 
-                # Round 2 — R32 (pair R1 winners: G1&G2, G3&G4, G5&G6, G7&G8)
+                # Round 2 — R32
                 r2_winners = []
                 for i in range(0, 8, 2):
                     team_a = survivors[r1_slots[i]]
@@ -303,10 +327,10 @@ class BracketSimulator:
                     r3_winners.append(winner)
                     win_counts[winner][3] += 1
 
-                # Round 4 — Elite 8 (regional champion)
+                # Round 4 — Elite 8
                 team_a, team_b = r3_winners[0], r3_winners[1]
-                p      = self.prob_matrix[team_a][team_b]
-                champ  = team_a if rng.random() < p else team_b
+                p     = self.prob_matrix[team_a][team_b]
+                champ = team_a if rng.random() < p else team_b
                 survivors[f"{region}_winner"] = champ
                 win_counts[champ][4] += 1
 
@@ -324,8 +348,8 @@ class BracketSimulator:
 
             # Round 6 — Championship
             team_a, team_b = f4_winners[0], f4_winners[1]
-            p       = self.prob_matrix[team_a][team_b]
-            champ   = team_a if rng.random() < p else team_b
+            p     = self.prob_matrix[team_a][team_b]
+            champ = team_a if rng.random() < p else team_b
             win_counts[champ][6] += 1
 
         win_probs = {
@@ -413,12 +437,8 @@ def generate_chalk_bracket(
 
 def print_chalk_bracket(picks_by_round: dict, prob_matrix: dict):
     round_names = {
-        1: "Round of 64",
-        2: "Round of 32",
-        3: "Sweet 16",
-        4: "Elite 8",
-        5: "Final Four",
-        6: "Champion",
+        1: "Round of 64", 2: "Round of 32", 3: "Sweet 16",
+        4: "Elite 8",     5: "Final Four",  6: "Champion",
     }
     print("\n" + "=" * 50)
     print(" Chalk bracket — model's best picks")
@@ -429,17 +449,184 @@ def print_chalk_bracket(picks_by_round: dict, prob_matrix: dict):
             print(f"    {team}")
 
 
+# ── Scoring ───────────────────────────────────────────────────────────────────
+
+ROUND_NAMES = {
+    0: "First Four", 1: "R64", 2: "R32",
+    3: "S16",        4: "E8",  5: "F4", 6: "Champ",
+}
+
+
+def _resolve_name(team: str, win_probs: dict) -> str | None:
+    """Resolve a bracket team name to its simulation name. Returns None if not found."""
+    if team in win_probs:
+        return team
+
+    ALIASES = {
+        "Connecticut":           "UConn",
+        "UConn":                 "Connecticut",
+        "St John's":             "St. John's",
+        "St. John's":            "St John's",
+        "Saint John's":          "St. John's",
+        "SIU Edwardsville":      "SIUE",
+        "SIUE":                  "SIU Edwardsville",
+        "NC State":              "North Carolina State",
+        "North Carolina State":  "NC State",
+        "North Carolina St.":    "NC State",
+        "VCU":                   "Virginia Commonwealth",
+        "Virginia Commonwealth": "VCU",
+        "Miami FL":              "Miami",
+        "Miami":                 "Miami FL",
+        "USC":                   "Southern California",
+        "Southern California":   "USC",
+        "LSU":                   "Louisiana State",
+        "Louisiana State":       "LSU",
+    }
+    alias = ALIASES.get(team)
+    if alias and alias in win_probs:
+        return alias
+
+    # Fuzzy match: normalize punctuation/case
+    def norm(s):
+        return s.lower().replace(".", "").replace("'", "").replace("-", " ").strip()
+
+    team_norm = norm(team)
+    for sim_team in win_probs:
+        if norm(sim_team) == team_norm:
+            return sim_team
+
+    return None
+
+
+def score_simulation(
+    sim_results: SimulationResults,
+    bracket_data: dict,
+    verbose: bool = True,
+) -> dict:
+    """
+    Scores simulation win probabilities against actual tournament results.
+
+    For each team×round outcome in the bracket, compares the simulation's
+    predicted win probability against the actual outcome (1 = advanced, 0 = lost).
+
+    Metrics per round and overall:
+      - Brier score (primary)
+      - Accuracy (did the chalk pick — prob >= 0.5 — match actual outcome?)
+      - Calibration gap (mean predicted prob vs actual win rate)
+
+    Returns a dict of scoring metrics.
+    """
+    from sklearn.metrics import brier_score_loss
+
+    actual   = bracket_data["results"]
+    champion = bracket_data["champion"]
+    season   = bracket_data["season"]
+
+    all_probs: list[float]  = []
+    all_outcomes: list[int] = []
+    round_data: dict        = {r: {"probs": [], "outcomes": [], "correct": []}
+                                for r in range(1, 7)}
+    name_misses: list[str]  = []
+
+    for team, rounds in actual.items():
+        if not rounds:
+            continue  # First Four losers have no round records — skip silently
+        sim_team = _resolve_name(team, sim_results.win_probs)
+        if sim_team is None:
+            name_misses.append(team)
+            continue
+
+        for round_num, outcome in rounds.items():
+            prob        = sim_results.win_probs[sim_team].get(round_num, 0.0)
+            chalk_right = int((prob >= 0.5) == bool(outcome))
+
+            all_probs.append(prob)
+            all_outcomes.append(outcome)
+            round_data[round_num]["probs"].append(prob)
+            round_data[round_num]["outcomes"].append(outcome)
+            round_data[round_num]["correct"].append(chalk_right)
+
+    if name_misses:
+        print(f"  WARNING: {len(name_misses)} bracket teams not in simulation: "
+              f"{name_misses}")
+
+    round_metrics: dict[int, dict] = {}
+    for r in range(1, 7):
+        rd = round_data[r]
+        if not rd["probs"]:
+            continue
+        round_metrics[r] = {
+            "brier":       float(brier_score_loss(rd["outcomes"], rd["probs"])),
+            "accuracy":    float(np.mean(rd["correct"])),
+            "mean_prob":   float(np.mean(rd["probs"])),
+            "actual_rate": float(np.mean(rd["outcomes"])),
+            "n":           len(rd["probs"]),
+        }
+
+    overall_brier = float(brier_score_loss(all_outcomes, all_probs)) if all_probs else None
+
+    champ_sim  = _resolve_name(champion, sim_results.win_probs) if champion else None
+    champ_prob = (sim_results.win_probs[champ_sim].get(6, 0.0)
+                  if champ_sim else 0.0)
+
+    if verbose:
+        _print_score_report(season, round_metrics, overall_brier,
+                            champion, champ_prob, name_misses)
+
+    return {
+        "season":        season,
+        "overall_brier": overall_brier,
+        "round_metrics": round_metrics,
+        "champion":      champion,
+        "champion_prob": champ_prob,
+        "n_games":       len(all_probs),
+        "n_mismatches":  len(name_misses),
+    }
+
+
+def _print_score_report(season, round_metrics, overall_brier,
+                        champion, champ_prob, name_misses):
+    print(f"\n{'='*65}")
+    print(f" Simulation scoring — {season} NCAA Tournament")
+    print(f"{'='*65}")
+    print(f"  {'Round':<8}  {'Brier':>7}  {'Acc':>6}  "
+          f"{'Mean P':>7}  {'Actual%':>8}  {'n':>4}")
+    print(f"  {'-'*55}")
+    for r in range(1, 7):
+        if r not in round_metrics:
+            continue
+        m = round_metrics[r]
+        print(f"  {ROUND_NAMES[r]:<8}  {m['brier']:>7.4f}  "
+              f"{m['accuracy']:>6.1%}  {m['mean_prob']:>7.3f}  "
+              f"{m['actual_rate']:>8.1%}  {m['n']:>4}")
+    print(f"  {'-'*55}")
+    if overall_brier is not None:
+        print(f"  {'Overall':<8}  {overall_brier:>7.4f}")
+
+    label = ("model had them as favorite" if champ_prob > 0.20
+             else "upset" if champ_prob < 0.10 else "plausible pick")
+    print(f"\n  Champion:       {champion}")
+    print(f"  Sim champ prob: {champ_prob:.1%}  ({label})")
+    if name_misses:
+        print(f"\n  Unmatched teams ({len(name_misses)}): {name_misses}")
+    print(f"{'='*65}")
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import argparse
     from pathlib import Path
+    from data.bracket_builder import build_bracket_from_cache
 
     parser = argparse.ArgumentParser(description="NCAA tournament bracket simulator")
-    parser.add_argument("--n-sims", type=int, default=10_000)
-    parser.add_argument("--model",  choices=["logistic", "histgbt"], default="logistic")
-    parser.add_argument("--top-n",  type=int, default=20)
-    parser.add_argument("--save",   type=str, default=None,
+    parser.add_argument("--n-sims",  type=int, default=10_000)
+    parser.add_argument("--model",   choices=["logistic", "histgbt"], default="logistic")
+    parser.add_argument("--season",  type=int, default=2025)
+    parser.add_argument("--top-n",   type=int, default=20)
+    parser.add_argument("--score",   action="store_true",
+                        help="Score simulation against actual results")
+    parser.add_argument("--save",    type=str, default=None,
                         help="Save SimulationResults to this path")
     args = parser.parse_args()
 
@@ -451,8 +638,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     features_by_season = joblib.load(feat_path)
-    features_2025      = features_by_season[2025]
-    print(f"  Loaded features_by_season — {len(features_2025)} teams in 2025")
+    features = features_by_season.get(args.season)
+    if features is None:
+        print(f"ERROR: No features for season {args.season}. "
+              f"Available: {sorted(features_by_season.keys())}")
+        sys.exit(1)
+    print(f"  Loaded features_by_season — {len(features)} teams in {args.season}")
 
     # Load model
     if args.model == "logistic":
@@ -464,10 +655,14 @@ if __name__ == "__main__":
         model = GamePredictor.load()
         print("  Loaded: GamePredictor (HistGBT baseline)")
 
+    # Build bracket from cache
+    bracket_data = build_bracket_from_cache(args.season)
+
     # Run simulation
-    sim     = BracketSimulator(
+    sim = BracketSimulator(
         model=model,
-        features_2025=features_2025,
+        features_2025=features,
+        bracket_data=bracket_data,
         n_simulations=args.n_sims,
     )
     results = sim.simulate()
@@ -477,7 +672,10 @@ if __name__ == "__main__":
     picks, chalk = generate_chalk_bracket(results, sim.bracket, sim.prob_matrix)
     print_chalk_bracket(picks, sim.prob_matrix)
 
-    # Save if requested
+    # Score against actual results
+    if args.score:
+        metrics = score_simulation(results, bracket_data, verbose=True)
+
     if args.save:
         results.save(args.save)
 
