@@ -5,7 +5,7 @@ This Is March — Bracket Explorer
 Pages:
   Brackets         — View model-generated bracket scenarios
   My Bracket       — Build your own bracket with model guidance + probability scoring
-  Matchup Simulator — (coming soon) Head-to-head probability for any two teams
+  Matchup Simulator — Head-to-head win probability for any two teams
 
 Run:
   streamlit run app.py
@@ -58,6 +58,45 @@ def load_features():
     if not path.exists():
         return None
     return joblib.load(path)
+
+
+@st.cache_data(show_spinner=False)
+def _bracket_seeds_for_season(season: int) -> dict:
+    """Return {team_api_name: seed} for all bracket teams in a given season."""
+    from validation.simulation import _normalize
+    json_path = Path(f"data/bracket_{season}.json")
+    if json_path.exists():
+        with open(json_path) as f:
+            bj = json.load(f)
+        seeds = {}
+        for region_data in bj["regions"].values():
+            for m in region_data["matchups"]:
+                seeds[_normalize(m["team_a"])] = int(m["seed_a"])
+                seeds[_normalize(m["team_b"])] = int(m["seed_b"])
+        return seeds
+    try:
+        from data.bracket_builder import build_bracket_from_cache
+        bd = build_bracket_from_cache(season)
+        return {t: int(s) for t, s in bd["seeds"].items()}
+    except Exception:
+        return {}
+
+
+@st.cache_data(show_spinner=False)
+def _bracket_win_rates_for_season(season: int) -> dict:
+    """Compute regular-season win rates vs. tournament-field opponents for a season."""
+    games_path = Path(f"data/cache/raw/games_{season}.csv")
+    if not games_path.exists():
+        return {}
+    try:
+        games_df = pd.read_csv(str(games_path))
+        seeds = _bracket_seeds_for_season(season)
+        if not seeds:
+            return {}
+        from features.builder import compute_bracket_win_rate
+        return compute_bracket_win_rate(games_df, season, set(seeds.keys()))
+    except Exception:
+        return {}
 
 
 @st.cache_data(show_spinner="Running simulation...")
@@ -633,31 +672,255 @@ elif page == "🖊️ My Bracket":
 # ══════════════════════════════════════════════════════════════════════════════
 
 elif page == "⚡ Matchup Simulator":
-    st.title("⚡ Matchup Simulator")
-    st.info(
-        "Head-to-head win probability for any two teams. "
-        "Coming once additional models are trained.",
-        icon="🔧",
+    import numpy as _np
+    from features.builder import build_matchup_features
+    from validation.simulation import (
+        scale_matchup, ROUND_FEATURE_SCALES, ROUND_ALPHAS, CHAOS_ALPHAS, dampen,
     )
 
+    st.title("⚡ Matchup Simulator")
+    st.markdown(
+        "Head-to-head win probability for any two teams. "
+        "Seeds are pulled from the bracket when available, otherwise inferred from efficiency ratio. "
+        "Round selection applies round-specific feature scaling."
+    )
+
+    # ── Sidebar ───────────────────────────────────────────────────────────────
     st.sidebar.header("Settings")
     model_choice = st.sidebar.selectbox("Model", ["LogReg (post+conf)", "HistGBT (trimmed post+conf)"])
-    season       = st.sidebar.selectbox("Season", [2026, 2025, 2024])
+    season       = st.sidebar.selectbox("Season", [2026, 2025, 2024, 2023, 2022])
 
+    _ROUND_OPTS = [
+        ("Round of 64",   1), ("Round of 32", 2), ("Sweet 16",     3),
+        ("Elite 8",       4), ("Final Four",  5), ("Championship", 6),
+    ]
+    round_label = st.sidebar.selectbox("Round", [r[0] for r in _ROUND_OPTS])
+    round_num   = dict(_ROUND_OPTS)[round_label]
+
+    neutral_site = st.sidebar.toggle("Neutral Site", value=True)
+
+    st.sidebar.divider()
+    ms_noise_sigma = st.sidebar.slider(
+        "Noise σ", 0.0, 0.15, 0.0, 0.01,
+        help="Gaussian noise added to the probability before resolving. "
+             "Shows game-day variance as an 80% confidence interval. 0.0 = point estimate.",
+    )
+    ms_chaos_fraction = st.sidebar.slider(
+        "Chaos Fraction", 0.0, 1.0, 0.0, 0.05,
+        help="Blend aggressive late-round dampening into the probability. "
+             "0.0 = standard dampening; 1.0 = full chaos mode.",
+    )
+
+    # ── Load data ─────────────────────────────────────────────────────────────
     features_by_season = load_features()
-    teams = sorted(features_by_season[season].keys()) if (
-        features_by_season and season in features_by_season
-    ) else []
+    if features_by_season is None or season not in features_by_season:
+        st.error("Features not found. Run `python data/pull.py` first.")
+        st.stop()
 
+    season_feats   = features_by_season[season]
+    all_teams      = sorted(season_feats.keys())
+    bracket_seeds  = _bracket_seeds_for_season(season)
+    bracket_win_rates = _bracket_win_rates_for_season(season)
+
+    # Build seed → median efficiency_ratio lookup for inference
+    _seed_er_map: dict[int, list] = {}
+    for _t, _s in bracket_seeds.items():
+        _er = season_feats.get(_t, {}).get("efficiency_ratio")
+        if _er is not None and not (isinstance(_er, float) and math.isnan(_er)):
+            _seed_er_map.setdefault(int(_s), []).append(float(_er))
+    _seed_medians = {s: float(_np.median(ers)) for s, ers in _seed_er_map.items() if ers}
+
+    def _infer_seed(team: str) -> int:
+        if team in bracket_seeds:
+            return int(bracket_seeds[team])
+        er = season_feats.get(team, {}).get("efficiency_ratio")
+        if er is None or (isinstance(er, float) and math.isnan(er)) or not _seed_medians:
+            return 8
+        return min(_seed_medians, key=lambda s: abs(_seed_medians[s] - float(er)))
+
+    # ── Team selectors ────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
+
     with col1:
         st.subheader("Team A")
-        st.selectbox("Select Team A", teams, key="team_a")
-        st.number_input("Seed A (optional)", min_value=1, max_value=16, value=1)
+        team_a = st.selectbox("Select Team A", all_teams, key="ms_team_a")
+        inf_a  = _infer_seed(team_a)
+        seed_a = st.number_input(
+            "Seed", min_value=1, max_value=16, value=inf_a,
+            key=f"ms_seed_a_{team_a}_{season}",
+        )
+        if team_a in bracket_seeds:
+            st.caption(f"✓ Bracket seed #{bracket_seeds[team_a]}")
+        else:
+            st.caption(f"Not in bracket — seed inferred from efficiency ratio (≈ #{inf_a})")
+
     with col2:
         st.subheader("Team B")
-        st.selectbox("Select Team B", teams, index=min(1, len(teams)-1), key="team_b")
-        st.number_input("Seed B (optional)", min_value=1, max_value=16, value=2)
+        default_b_idx = min(1, len(all_teams) - 1)
+        team_b = st.selectbox("Select Team B", all_teams, index=default_b_idx, key="ms_team_b")
+        inf_b  = _infer_seed(team_b)
+        seed_b = st.number_input(
+            "Seed", min_value=1, max_value=16, value=inf_b,
+            key=f"ms_seed_b_{team_b}_{season}",
+        )
+        if team_b in bracket_seeds:
+            st.caption(f"✓ Bracket seed #{bracket_seeds[team_b]}")
+        else:
+            st.caption(f"Not in bracket — seed inferred from efficiency ratio (≈ #{inf_b})")
 
-    st.button("Calculate Win Probability", type="primary", disabled=True)
-    st.caption("Model wiring coming soon — architecture is ready.")
+    st.divider()
+
+    if team_a == team_b:
+        st.warning("Select two different teams.")
+        st.stop()
+
+    feats_a = season_feats.get(team_a)
+    feats_b = season_feats.get(team_b)
+    if feats_a is None or feats_b is None:
+        st.error("Feature data missing for one or both teams.")
+        st.stop()
+
+    # ── Compute matchup ───────────────────────────────────────────────────────
+    model = load_model(model_choice)
+
+    # Inject bracket_win_rate (same as _build_prob_matrices does at sim time)
+    feats_a_bwr = {**feats_a, "bracket_win_rate": bracket_win_rates.get(team_a, float("nan"))}
+    feats_b_bwr = {**feats_b, "bracket_win_rate": bracket_win_rates.get(team_b, float("nan"))}
+
+    # Seeds active only for rounds 1–3; zeroed for E8+
+    use_seed_a = int(seed_a) if round_num <= 3 else None
+    use_seed_b = int(seed_b) if round_num <= 3 else None
+
+    matchup = build_matchup_features(
+        feats_a_bwr, feats_b_bwr,
+        neutral_site=neutral_site,
+        seed_a=use_seed_a,
+        seed_b=use_seed_b,
+    )
+    if round_num >= 4:
+        matchup["seed_diff"] = 0
+
+    matchup_scaled = scale_matchup(matchup, round_num, ROUND_FEATURE_SCALES)
+    X = pd.DataFrame([matchup_scaled])
+    p_raw = float(model.predict_proba(X)[0])
+
+    # Dampen: blend normal + chaos
+    p_normal = dampen(p_raw, round_num, ROUND_ALPHAS)
+    p_chaos  = dampen(p_raw, round_num, CHAOS_ALPHAS)
+    p_damp   = (1.0 - ms_chaos_fraction) * p_normal + ms_chaos_fraction * p_chaos
+
+    # Noise: Monte Carlo samples for confidence interval
+    p_lo = p_hi = None
+    if ms_noise_sigma > 0:
+        rng     = _np.random.default_rng(42)
+        samples = _np.clip(p_damp + rng.normal(0, ms_noise_sigma, 2000), 0.05, 0.95)
+        p_final = float(samples.mean())
+        p_lo    = float(_np.percentile(samples, 10))
+        p_hi    = float(_np.percentile(samples, 90))
+    else:
+        p_final = p_damp
+
+    p_b = 1.0 - p_final
+
+    # ── Display: win probability ───────────────────────────────────────────────
+    c1, c2, c3 = st.columns([5, 2, 5])
+    color_a = "#1a7f37" if p_final >= 0.5 else "#888"
+    color_b = "#1a7f37" if p_b    >= 0.5 else "#888"
+
+    with c1:
+        st.markdown(
+            f"<div style='text-align:center'>"
+            f"<div style='font-size:1.2em;font-weight:600'>#{int(seed_a)} {team_a}</div>"
+            f"<div style='font-size:3em;font-weight:800;color:{color_a};line-height:1.1'>"
+            f"{p_final:.1%}</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            "<div style='text-align:center;padding-top:32px;"
+            "font-size:1.2em;color:#aaa'>vs</div>",
+            unsafe_allow_html=True,
+        )
+    with c3:
+        st.markdown(
+            f"<div style='text-align:center'>"
+            f"<div style='font-size:1.2em;font-weight:600'>#{int(seed_b)} {team_b}</div>"
+            f"<div style='font-size:3em;font-weight:800;color:{color_b};line-height:1.1'>"
+            f"{p_b:.1%}</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    # Context line
+    ctx_parts = [f"Raw model: {p_raw:.1%}", round_label]
+    if round_num <= 3 and "seed_diff" in matchup:
+        ctx_parts.append(f"Seed diff: {int(matchup['seed_diff']):+d}")
+    ctx_parts.append("Neutral" if neutral_site else "Home/Away")
+    if ms_noise_sigma > 0 and p_lo is not None:
+        ctx_parts.append(f"80% CI: {p_lo:.1%}–{p_hi:.1%}")
+    if ms_chaos_fraction > 0:
+        ctx_parts.append(f"Chaos: {ms_chaos_fraction:.0%}")
+
+    st.markdown(
+        f"<div style='text-align:center;color:#777;font-size:0.85em;margin-top:4px'>"
+        + "  ·  ".join(ctx_parts) + "</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    # ── Display: feature comparison ───────────────────────────────────────────
+    st.markdown("### Feature Breakdown")
+    st.caption(
+        f"Positive values favor {team_a}; negative favor {team_b}. "
+        f"'Scaled' reflects round-specific weighting applied before model prediction."
+    )
+
+    _FEAT_LABELS = {
+        "diff_efficiency_ratio": "Efficiency Ratio",
+        "diff_adj_off_rating":   "Adj. Off. Rating",
+        "diff_adj_def_rating":   "Adj. Def. Rating",
+        "diff_net_rating":       "Net Rating",
+        "diff_elo":              "ELO",
+        "diff_srs":              "SRS",
+        "diff_star_power":       "Star Power (PORPAG)",
+        "diff_hot_streak":       "Hot Streak",
+        "diff_experience":       "Experience",
+        "diff_bracket_win_rate": "Bracket Win Rate",
+        "diff_conf_strength":    "Conf. Strength",
+        "diff_road_win_pct":     "Road Win %",
+        "diff_close_game_pct":   "Close Game %",
+        "diff_upset_propensity": "Upset Propensity",
+        "diff_pace":             "Pace",
+        "diff_adj_off_rank":     "Adj. Off. Rank",
+        "diff_adj_def_rank":     "Adj. Def. Rank",
+        "diff_non_conf_sos":     "Non-Conf. SOS",
+    }
+
+    feat_rows = []
+    for fkey, flabel in _FEAT_LABELS.items():
+        raw_v    = matchup.get(fkey)
+        scaled_v = matchup_scaled.get(fkey)
+        if raw_v is None or (isinstance(raw_v, float) and math.isnan(raw_v)):
+            continue
+        raw_f    = float(raw_v)
+        scaled_f = float(scaled_v) if scaled_v is not None and not math.isnan(float(scaled_v)) else raw_f
+        scale_mult = round(scaled_f / raw_f, 2) if abs(raw_f) > 1e-9 else 1.0
+        feat_rows.append({
+            "Feature":      flabel,
+            "A − B":        round(raw_f, 3),
+            "Scaled":       round(scaled_f, 3),
+            "Scale ×":      scale_mult,
+            "Favors":       team_a if raw_f > 0.005 else (team_b if raw_f < -0.005 else "—"),
+        })
+
+    if feat_rows:
+        feat_df = (
+            pd.DataFrame(feat_rows)
+            .assign(_abs=lambda d: d["Scaled"].abs())
+            .sort_values("_abs", ascending=False)
+            .drop(columns=["_abs"])
+            .reset_index(drop=True)
+        )
+        st.dataframe(feat_df, use_container_width=True, hide_index=True)
