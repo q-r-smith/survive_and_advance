@@ -1,0 +1,23 @@
+{
+  "BYU": [
+    {
+      "name": "Richie Saunders",
+      "games_out": 4,
+      "status": "out"
+    }
+  ],
+  "North Carolina": [
+    {
+      "name": "Caleb Wilson",
+      "games_out": 9,
+      "status": "out"
+    }
+  ],
+  "Louisville": [
+    {
+      "name": "Mikel Brown",
+      "games_out": 6,
+      "status": "out"
+    }
+  ]
+}
