@@ -47,6 +47,7 @@ def backtest_season(
         bracket_data=bracket_data,
         n_simulations=n_simulations,
         random_state=42,
+        season=season,
     )
     results = sim.simulate()
     metrics = score_simulation(results, bracket_data, verbose=False)

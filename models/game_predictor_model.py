@@ -7,7 +7,7 @@ import joblib
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "game_predictor.pkl")
 
-NON_FEATURE_COLS = ["season", "season_type", "game_type", "conf_game"]
+NON_FEATURE_COLS = ["season", "season_type", "game_type", "conf_game", "round_num"]
 
 DEFAULT_PARAMS = {
     "loss": "log_loss",

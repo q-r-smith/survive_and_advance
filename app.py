@@ -91,6 +91,7 @@ def run_simulation(
         round_alphas=round_alphas,
         noise_sigma=noise_sigma,
         chaos_fraction=chaos_fraction,
+        season=season,
     )
 
     bracket_path = Path(f"data/bracket_{season}.json")

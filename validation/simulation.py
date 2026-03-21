@@ -87,6 +87,84 @@ def seed_prob_fallback(seed_a: int, seed_b: int) -> float:
 ROUND_ALPHAS = {1: 1.00, 2: 0.95, 3: 0.85, 4: 0.75, 5: 0.65, 6: 0.60}
 CHAOS_ALPHAS = {1: 0.90, 2: 0.80, 3: 0.70, 4: 0.60, 5: 0.50, 6: 0.45}
 
+# Round-specific feature scaling multipliers.
+# Applied to matchup feature vector BEFORE model prediction.
+# Derived from round-stratified Pearson correlation analysis.
+# Features not listed default to 1.0 (unchanged).
+ROUND_FEATURE_SCALES: dict[int, dict[str, float]] = {
+    1: {
+        # R64 — conf_strength and bracket context matter most early
+        "diff_conf_strength":    1.2,
+        "diff_bracket_win_rate": 1.1,
+        "diff_close_game_pct":   0.3,   # near-zero correlation early, dampen
+        "diff_experience":       0.3,
+        "diff_road_win_pct":     0.5,
+    },
+    2: {
+        # R32 — star power begins to emerge, conf fades
+        "diff_star_power":       1.3,
+        "diff_conf_strength":    0.6,
+        "diff_close_game_pct":   0.3,
+        "diff_experience":       0.3,
+        "diff_road_win_pct":     0.5,
+    },
+    3: {
+        # S16 — star power peaks, bracket_win_rate meaningful again
+        "diff_star_power":       1.5,
+        "diff_bracket_win_rate": 1.2,
+        "diff_conf_strength":    0.4,
+        "diff_road_win_pct":     0.7,
+    },
+    4: {
+        # E8 — defense and road toughness begin to matter
+        "diff_road_win_pct":     1.4,
+        "diff_adj_def_rank":     1.3,
+        "diff_bracket_win_rate": 1.3,
+        "diff_conf_strength":    0.2,
+        "diff_star_power":       0.7,
+        "diff_close_game_pct":   0.8,
+    },
+    5: {
+        # F4 — close game pct and experience dominate; conf irrelevant
+        "diff_close_game_pct":   2.0,
+        "diff_experience":       1.8,
+        "diff_road_win_pct":     1.6,
+        "diff_elo":              1.2,
+        "diff_conf_strength":    0.1,
+        "diff_star_power":       0.5,
+        "diff_bracket_win_rate": 0.7,
+    },
+    6: {
+        # Championship — same profile as F4, slightly more extreme
+        "diff_close_game_pct":   2.2,
+        "diff_experience":       2.0,
+        "diff_road_win_pct":     1.8,
+        "diff_elo":              1.2,
+        "diff_conf_strength":    0.1,
+        "diff_star_power":       0.4,
+        "diff_bracket_win_rate": 0.6,
+    },
+}
+
+
+def scale_matchup(matchup: dict, round_num: int,
+                  scales: dict = ROUND_FEATURE_SCALES) -> dict:
+    """
+    Apply round-specific feature multipliers to a matchup feature vector.
+    Only diff_* features are scaled. neutral_site and seed_diff are left as-is.
+    Returns a new dict — does not mutate the input.
+    """
+    round_scales = scales.get(round_num, {})
+    if not round_scales:
+        return matchup  # fast path: no scaling for this round
+    scaled = {}
+    for k, v in matchup.items():
+        if k.startswith("diff_") and k in round_scales and v == v:  # v==v checks for NaN
+            scaled[k] = v * round_scales[k]
+        else:
+            scaled[k] = v
+    return scaled
+
 
 def dampen(p: float, round_num: int, alphas: dict) -> float:
     """Compress p toward 0.5 using a round-specific alpha. alpha=1.0 = no change."""
@@ -216,20 +294,27 @@ class BracketSimulator:
         noise_sigma: float = 0.0,
         chaos_fraction: float = 0.0,
         chaos_sigma: float = 0.08,
+        season: int = 2026,
+        round_feature_scales: dict = None,
     ):
-        self.model          = model
-        self.features_2025  = features_2025
-        self.n_simulations  = n_simulations
-        self.random_state   = random_state
-        self.round_alphas   = round_alphas if round_alphas is not None else ROUND_ALPHAS
-        self.noise_sigma    = noise_sigma
-        self.chaos_fraction = chaos_fraction
-        self.chaos_sigma    = chaos_sigma
+        self.model               = model
+        self.features_2025       = features_2025
+        self.n_simulations       = n_simulations
+        self.random_state        = random_state
+        self.round_alphas        = round_alphas if round_alphas is not None else ROUND_ALPHAS
+        self.noise_sigma         = noise_sigma
+        self.chaos_fraction      = chaos_fraction
+        self.chaos_sigma         = chaos_sigma
+        self.round_feature_scales = (round_feature_scales
+                                     if round_feature_scales is not None
+                                     else ROUND_FEATURE_SCALES)
 
         if bracket_data is not None:
             # Use reconstructed bracket from build_bracket_from_cache()
+            self.season = bracket_data["season"]
             self._init_from_bracket_data(bracket_data)
         else:
+            self.season = season
             # Load from JSON file
             if bracket_path is None:
                 bracket_path = os.path.join(
@@ -239,10 +324,21 @@ class BracketSimulator:
                 self._init_from_json(json.load(f))
 
         n = len(self.bracket_teams)
-        print(f"\n  Building {n}×{n} probability matrices (2 × {n**2} lookups) ...")
-        self.prob_matrix          = self._build_prob_matrix(use_seeds=True)
-        self.prob_matrix_unseeded = self._build_prob_matrix(use_seeds=False)
-        print(f"  Probability matrices complete.")
+        print(f"\n  Building {n}×{n} probability matrices "
+              f"(6 rounds × {n**2} pairs) ...")
+        self.prob_matrices = self._build_prob_matrices()
+        print(f"  All probability matrices complete.")
+
+    # ── Backward-compatible aliases for external callers (app.py, generator.py) ─
+    @property
+    def prob_matrix(self) -> dict:
+        """Early-round (R1, seeded) matrix. Backward-compat alias for app.py."""
+        return self.prob_matrices[1]
+
+    @property
+    def prob_matrix_unseeded(self) -> dict:
+        """Late-round (E8+, unseeded) matrix. Backward-compat alias for app.py."""
+        return self.prob_matrices[4]
 
     def _init_from_json(self, bracket_json: dict):
         """Initialize from bracket_2025.json — applies NAME_FIXES normalization."""
@@ -286,43 +382,88 @@ class BracketSimulator:
             print(f"  Missing (seed fallback): {missing}")
         self._team_map = {t: t for t in self.bracket_teams}
 
-    def _build_prob_matrix(self, use_seeds: bool = True) -> dict:
-        from features.builder import build_matchup_features
+    def _build_prob_matrices(self) -> dict[int, dict[str, dict[str, float]]]:
+        """
+        Build one NxN probability matrix per round (1–6), each with:
+          - Round-specific feature scaling (ROUND_FEATURE_SCALES)
+          - Seeds used for R1–R3; seed_diff zeroed for R4–R6
+          - bracket_win_rate injected from the season's regular-season data
+        Order of operations per matchup:
+          1. Build raw matchup features (including bracket_win_rate)
+          2. Apply round-specific feature scaling (scale_matchup)
+          3. Call model → raw probability
+        Round dampening and noise are applied later during simulate().
+        """
+        from features.builder import build_matchup_features, compute_bracket_win_rate
 
-        matrix: dict[str, dict[str, float]] = {}
+        # Compute bracket win rates once; reuse across all 6 round matrices.
+        bracket_win_rates: dict = {}
+        games_path = os.path.join("data", "cache", "raw", f"games_{self.season}.csv")
+        if os.path.exists(games_path):
+            try:
+                games_df = pd.read_csv(games_path)
+                tournament_teams = set(self.bracket_teams)
+                bracket_win_rates = compute_bracket_win_rate(
+                    games_df, self.season, tournament_teams
+                )
+            except Exception as e:
+                print(f"  WARNING: could not compute bracket_win_rate for {self.season}: {e}")
+        else:
+            print(f"  WARNING: games_{self.season}.csv not found — bracket_win_rate will be NaN")
+
+        matrices: dict[int, dict[str, dict[str, float]]] = {}
         teams = self.bracket_teams
 
-        for team_a in teams:
-            matrix[team_a] = {}
-            feats_a = self.features_2025.get(team_a)
-            seed_a  = self.team_seeds.get(team_a)
+        for round_num in range(1, 7):
+            print(f"    Round {round_num} matrix ...", end=" ", flush=True)
+            matrix: dict[str, dict[str, float]] = {}
 
-            for team_b in teams:
-                if team_a == team_b:
-                    matrix[team_a][team_b] = 0.5
-                    continue
+            for team_a in teams:
+                matrix[team_a] = {}
+                feats_a = self.features_2025.get(team_a)
+                seed_a  = self.team_seeds.get(team_a)
 
-                feats_b = self.features_2025.get(team_b)
-                seed_b  = self.team_seeds.get(team_b)
+                for team_b in teams:
+                    if team_a == team_b:
+                        matrix[team_a][team_b] = 0.5
+                        continue
 
-                if feats_a is None or feats_b is None:
-                    matrix[team_a][team_b] = seed_prob_fallback(seed_a, seed_b)
-                    continue
+                    feats_b = self.features_2025.get(team_b)
+                    seed_b  = self.team_seeds.get(team_b)
 
-                matchup = build_matchup_features(
-                    feats_a, feats_b,
-                    neutral_site=True,
-                    seed_a=seed_a if use_seeds else None,
-                    seed_b=seed_b if use_seeds else None,
-                )
-                # seed_diff is omitted by build_matchup_features when seeds=None.
-                # Model still expects the column — set to 0 (neutral, no seed advantage).
-                if not use_seeds:
-                    matchup["seed_diff"] = 0
-                X = pd.DataFrame([matchup])
-                matrix[team_a][team_b] = float(self.model.predict_proba(X)[0])
+                    if feats_a is None or feats_b is None:
+                        matrix[team_a][team_b] = seed_prob_fallback(seed_a, seed_b)
+                        continue
 
-        return matrix
+                    # Inject bracket_win_rate for tournament-context signal.
+                    feats_a_bwr = {**feats_a, "bracket_win_rate": bracket_win_rates.get(team_a, float("nan"))}
+                    feats_b_bwr = {**feats_b, "bracket_win_rate": bracket_win_rates.get(team_b, float("nan"))}
+
+                    # R1–R3: use seeds (seed_diff signals upset potential).
+                    # R4–R6: zero seed_diff — teams have already proven themselves.
+                    use_seed_a = seed_a if round_num <= 3 else None
+                    use_seed_b = seed_b if round_num <= 3 else None
+
+                    matchup = build_matchup_features(
+                        feats_a_bwr, feats_b_bwr,
+                        neutral_site=True,
+                        seed_a=use_seed_a,
+                        seed_b=use_seed_b,
+                    )
+                    # seed_diff is omitted when seeds=None; model still expects it.
+                    if round_num >= 4:
+                        matchup["seed_diff"] = 0
+
+                    # Apply round-specific feature scaling before model call.
+                    matchup = scale_matchup(matchup, round_num, self.round_feature_scales)
+
+                    X = pd.DataFrame([matchup])
+                    matrix[team_a][team_b] = float(self.model.predict_proba(X)[0])
+
+            matrices[round_num] = matrix
+            print(f"done ({len(teams)**2} pairs)")
+
+        return matrices
 
     def _run_batch(self, n: int, rng, alphas: dict, sigma: float) -> dict:
         """Run n simulations with given round alphas and noise sigma. Returns win_counts."""
@@ -345,7 +486,7 @@ class BracketSimulator:
             # Round 1 — R64
             for game in r1_games:
                 team_a, team_b = game["team_a"], game["team_b"]
-                p      = dampen(self.prob_matrix[team_a][team_b], 1, alphas)
+                p      = dampen(self.prob_matrices[1][team_a][team_b], 1, alphas)
                 winner = team_a if _resolve(p, rng, sigma) else team_b
                 survivors[game["slot"]] = winner
                 win_counts[winner][1] += 1
@@ -360,7 +501,7 @@ class BracketSimulator:
                 for i in range(0, 8, 2):
                     team_a = survivors[r1_slots[i]]
                     team_b = survivors[r1_slots[i + 1]]
-                    p      = dampen(self.prob_matrix[team_a][team_b], 2, alphas)
+                    p      = dampen(self.prob_matrices[2][team_a][team_b], 2, alphas)
                     winner = team_a if _resolve(p, rng, sigma) else team_b
                     r2_winners.append(winner)
                     win_counts[winner][2] += 1
@@ -369,14 +510,14 @@ class BracketSimulator:
                 r3_winners = []
                 for i in range(0, 4, 2):
                     team_a, team_b = r2_winners[i], r2_winners[i + 1]
-                    p      = dampen(self.prob_matrix[team_a][team_b], 3, alphas)
+                    p      = dampen(self.prob_matrices[3][team_a][team_b], 3, alphas)
                     winner = team_a if _resolve(p, rng, sigma) else team_b
                     r3_winners.append(winner)
                     win_counts[winner][3] += 1
 
-                # Round 4 — Elite 8 (unseeded)
+                # Round 4 — Elite 8 (unseeded — seed_diff zeroed in matrix)
                 team_a, team_b = r3_winners[0], r3_winners[1]
-                p     = dampen(self.prob_matrix_unseeded[team_a][team_b], 4, alphas)
+                p     = dampen(self.prob_matrices[4][team_a][team_b], 4, alphas)
                 champ = team_a if _resolve(p, rng, sigma) else team_b
                 survivors[f"{region}_winner"] = champ
                 win_counts[champ][4] += 1
@@ -388,14 +529,14 @@ class BracketSimulator:
             ]
             f4_winners = []
             for team_a, team_b in f4_matchups:
-                p      = dampen(self.prob_matrix_unseeded[team_a][team_b], 5, alphas)
+                p      = dampen(self.prob_matrices[5][team_a][team_b], 5, alphas)
                 winner = team_a if _resolve(p, rng, sigma) else team_b
                 f4_winners.append(winner)
                 win_counts[winner][5] += 1
 
             # Round 6 — Championship (unseeded)
             team_a, team_b = f4_winners[0], f4_winners[1]
-            p     = dampen(self.prob_matrix_unseeded[team_a][team_b], 6, alphas)
+            p     = dampen(self.prob_matrices[6][team_a][team_b], 6, alphas)
             champ = team_a if _resolve(p, rng, sigma) else team_b
             win_counts[champ][6] += 1
 
@@ -430,15 +571,16 @@ class BracketSimulator:
 def generate_chalk_bracket(
     sim_results: SimulationResults,
     bracket: dict,
-    prob_matrix: dict,
-    prob_matrix_unseeded: dict = None,
+    prob_matrices: dict,
 ) -> tuple[dict, dict]:
     """
     Always picks the higher-probability team at every slot, propagating winners
-    forward. Returns (picks_by_round, chalk) where chalk maps slot_id → winner.
-    """
-    late_matrix = prob_matrix_unseeded if prob_matrix_unseeded is not None else prob_matrix
+    forward. Uses the per-round probability matrix for each game.
+    Returns (picks_by_round, chalk) where chalk maps slot_id → winner.
 
+    Args:
+        prob_matrices: dict[int, dict[str, dict[str, float]]] — one matrix per round.
+    """
     chalk: dict[str, str] = {}
     picks_by_round = {r: [] for r in range(1, 7)}
 
@@ -447,12 +589,12 @@ def generate_chalk_bracket(
         for game in data["matchups"]:
             team_a = _normalize(game["team_a"])
             team_b = _normalize(game["team_b"])
-            p      = prob_matrix[team_a][team_b]
+            p      = prob_matrices[1][team_a][team_b]
             winner = team_a if p >= 0.5 else team_b
             chalk[game["slot"]] = winner
             picks_by_round[1].append(winner)
 
-    # Rounds 2–3 within each region (seeded matrix)
+    # Rounds 2–4 within each region
     for region in ["South", "East", "West", "Midwest"]:
         prefix   = region[0]
         r1_slots = [f"{prefix}_R1_G{i}" for i in range(1, 9)]
@@ -460,7 +602,7 @@ def generate_chalk_bracket(
         r2_winners = []
         for i in range(0, 8, 2):
             team_a, team_b = chalk[r1_slots[i]], chalk[r1_slots[i + 1]]
-            p      = prob_matrix[team_a][team_b]
+            p      = prob_matrices[2][team_a][team_b]
             winner = team_a if p >= 0.5 else team_b
             r2_winners.append(winner)
             picks_by_round[2].append(winner)
@@ -468,33 +610,33 @@ def generate_chalk_bracket(
         r3_winners = []
         for i in range(0, 4, 2):
             team_a, team_b = r2_winners[i], r2_winners[i + 1]
-            p      = prob_matrix[team_a][team_b]
+            p      = prob_matrices[3][team_a][team_b]
             winner = team_a if p >= 0.5 else team_b
             r3_winners.append(winner)
             picks_by_round[3].append(winner)
 
-        # Round 4 — Elite 8 (unseeded)
+        # Round 4 — Elite 8 (unseeded, E8-scaled features)
         team_a, team_b = r3_winners[0], r3_winners[1]
-        p              = late_matrix[team_a][team_b]
+        p              = prob_matrices[4][team_a][team_b]
         regional_champ = team_a if p >= 0.5 else team_b
         chalk[f"{region}_winner"] = regional_champ
         picks_by_round[4].append(regional_champ)
 
-    # Round 5 — Final Four (unseeded)
+    # Round 5 — Final Four
     f4_matchups = [
         (chalk["South_winner"], chalk["East_winner"]),
         (chalk["West_winner"],  chalk["Midwest_winner"]),
     ]
     f4_winners = []
     for team_a, team_b in f4_matchups:
-        p      = late_matrix[team_a][team_b]
+        p      = prob_matrices[5][team_a][team_b]
         winner = team_a if p >= 0.5 else team_b
         f4_winners.append(winner)
         picks_by_round[5].append(winner)
 
-    # Round 6 — Championship (unseeded)
+    # Round 6 — Championship
     team_a, team_b = f4_winners[0], f4_winners[1]
-    p        = late_matrix[team_a][team_b]
+    p        = prob_matrices[6][team_a][team_b]
     champion = team_a if p >= 0.5 else team_b
     picks_by_round[6].append(champion)
 
@@ -703,11 +845,32 @@ if __name__ == "__main__":
                         help="Fraction of sims run in chaos mode (default: 0.0 = off)")
     parser.add_argument("--chaos-sigma",   type=float, default=0.08,
                         help="Noise sigma used in chaos batch (default: 0.08)")
+    parser.add_argument(
+        "--feature-scales", type=str, default=None,
+        help=("JSON string overriding ROUND_FEATURE_SCALES, "
+              "e.g. '{\"5\": {\"diff_close_game_pct\": 2.5}}'"),
+    )
+    parser.add_argument(
+        "--no-feature-scales", action="store_true",
+        help="Disable round-specific feature scaling (use global model for all rounds)",
+    )
     args = parser.parse_args()
 
     round_alphas = None
     if args.round_alphas is not None:
         round_alphas = {i+1: a for i, a in enumerate(args.round_alphas)}
+
+    # Feature scales: --no-feature-scales disables; --feature-scales overrides specific rounds
+    import copy as _copy
+    feature_scales = None
+    if args.no_feature_scales:
+        feature_scales = {r: {} for r in range(1, 7)}   # empty = no scaling
+    elif args.feature_scales:
+        import json as _json
+        override = _json.loads(args.feature_scales)
+        feature_scales = _copy.deepcopy(ROUND_FEATURE_SCALES)
+        for rnd, scales in override.items():
+            feature_scales.setdefault(int(rnd), {}).update(scales)
 
     # Load features
     feat_path = Path("data/cache/features_by_season.pkl")
@@ -748,6 +911,8 @@ if __name__ == "__main__":
         noise_sigma=args.noise_sigma,
         chaos_fraction=args.chaos_fraction,
         chaos_sigma=args.chaos_sigma,
+        season=args.season,
+        round_feature_scales=feature_scales,   # None = use ROUND_FEATURE_SCALES default
     )
 
     if args.season >= 2026:
@@ -785,8 +950,8 @@ if __name__ == "__main__":
     print(f"  {'4-12+':>5}  {low:>9.1%}  {'~30%':>10}")
 
     # Chalk bracket
-    picks, chalk = generate_chalk_bracket(results, sim.bracket, sim.prob_matrix, sim.prob_matrix_unseeded)
-    print_chalk_bracket(picks, sim.prob_matrix)
+    picks, chalk = generate_chalk_bracket(results, sim.bracket, sim.prob_matrices)
+    print_chalk_bracket(picks, sim.prob_matrices[1])
 
     # Score against actual results (historical seasons only)
     if args.score and bracket_data is not None:

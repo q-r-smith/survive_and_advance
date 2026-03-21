@@ -17,6 +17,8 @@ TEAM_FEATURES = [
     "experience", "star_power", "hot_streak",
     # schedule / conference context
     "conf_strength", "non_conf_sos", "road_win_pct", "close_game_pct",
+    # tournament-context feature (NaN for non-postseason rows; imputed at train time)
+    "bracket_win_rate",
 ]
 
 
@@ -283,6 +285,46 @@ def compute_upset_propensity(games_df, season, efficiency_ratio_map):
     return result
 
 
+def compute_bracket_win_rate(games_df, season, tournament_teams):
+    """
+    Win rate in regular season games against teams that made the NCAA tournament
+    that same season. Only computed for tournament teams themselves.
+
+    Args:
+        games_df: full games DataFrame
+        season: int
+        tournament_teams: set of team names that made the NCAA tournament this season
+
+    Returns:
+        dict: {team: bracket_win_rate} — np.nan if no games played vs bracket teams
+    """
+    reg = games_df[
+        (games_df["season"] == season) &
+        (games_df["seasonType"] == "regular")
+    ]
+
+    result = {}
+    for team in tournament_teams:
+        team_games = reg[(reg["homeTeam"] == team) | (reg["awayTeam"] == team)]
+
+        wins, total = 0, 0
+        for _, g in team_games.iterrows():
+            opp = g["awayTeam"] if g["homeTeam"] == team else g["homeTeam"]
+            if opp not in tournament_teams:
+                continue
+            total += 1
+            won = (
+                (g["homeTeam"] == team and bool(g["homeWinner"])) or
+                (g["awayTeam"] == team and not bool(g["homeWinner"]))
+            )
+            if won:
+                wins += 1
+
+        result[team] = float(wins / total) if total > 0 else np.nan
+
+    return result
+
+
 def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df, adj_df, elo_df, games_df, season):
     """
     Compute end-of-season feature dict per team for a given season.
@@ -358,6 +400,8 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
             "non_conf_sos":    non_conf_sos.get(team, np.nan),
             "road_win_pct":    road_win_pct.get(team, np.nan),
             "close_game_pct":  close_game.get(team, np.nan),
+            # Filled per-game in build_training_set for postseason rows only
+            "bracket_win_rate": np.nan,
         }
 
     # Second pass: upset_propensity requires efficiency_ratio for all teams first
@@ -388,8 +432,8 @@ def build_matchup_features(team_a_feats, team_b_feats, neutral_site=False, seed_
 def build_training_set(games_df, team_features_by_season):
     """
     Build (X, y) across all seasons and game types.
-    y=1 means home team won. season_type, game_type, conf_game columns preserved
-    for training-tier filtering at train time (not used as model features).
+    y=1 means home team won. season_type, game_type, conf_game, round_num columns
+    preserved for training-tier filtering / analysis (not used as model features).
 
     Feature vintage is chosen to prevent look-ahead leakage:
       - Regular season games       → prior season's end-of-season features
@@ -402,7 +446,11 @@ def build_training_set(games_df, team_features_by_season):
 
     This mirrors deployment: tournament predictions use end-of-regular-season stats.
     """
+    from data.bracket_builder import _parse_round_from_notes, build_bracket_from_cache
+
     rows, labels = [], []
+    _bracket_teams_cache    = {}  # season → set of tournament team names
+    _bracket_win_rate_cache = {}  # season → {team: bracket_win_rate}
 
     for _, game in games_df.iterrows():
         season      = game["season"]
@@ -413,6 +461,7 @@ def build_training_set(games_df, team_features_by_season):
         # Conference tournament games are labeled seasonType=="regular" but happen
         # after the regular season ends → use current-season features.
         is_conf_tourn = (game_type == "TRNMNT" and conf_game)
+        is_postseason = (season_type == "postseason")
         feat_season   = season if (season_type != "regular" or is_conf_tourn) else season - 1
 
         if feat_season not in team_features_by_season:
@@ -430,6 +479,45 @@ def build_training_set(games_df, team_features_by_season):
             seed_a=game.get("homeSeed") or None,
             seed_b=game.get("awaySeed") or None,
         )
+
+        # ── round_num metadata (not a model feature) ──────────────────────────
+        if is_postseason:
+            notes     = str(game.get("gameNotes", ""))
+            round_num = _parse_round_from_notes(notes)
+            if round_num == -2:   # "3rd Round" sentinel → R32 in both conventions
+                round_num = 2
+        else:
+            round_num = -1   # regular season or conference tournament
+
+        # ── diff_bracket_win_rate (postseason only) ───────────────────────────
+        if is_postseason:
+            if season not in _bracket_teams_cache:
+                try:
+                    bd = build_bracket_from_cache(season)
+                    _bracket_teams_cache[season] = set(bd["seeds"].keys())
+                except Exception:
+                    _bracket_teams_cache[season] = set()
+
+            tournament_teams = _bracket_teams_cache[season]
+            if tournament_teams:
+                if season not in _bracket_win_rate_cache:
+                    _bracket_win_rate_cache[season] = compute_bracket_win_rate(
+                        games_df, season, tournament_teams
+                    )
+                bwr      = _bracket_win_rate_cache[season]
+                home_bwr = bwr.get(home, np.nan)
+                away_bwr = bwr.get(away, np.nan)
+                matchup["diff_bracket_win_rate"] = (
+                    home_bwr - away_bwr
+                    if not (np.isnan(home_bwr) or np.isnan(away_bwr))
+                    else np.nan
+                )
+            else:
+                matchup["diff_bracket_win_rate"] = np.nan
+        else:
+            matchup["diff_bracket_win_rate"] = np.nan
+
+        matchup["round_num"]   = round_num
         matchup["season_type"] = season_type
         matchup["season"]      = season
         matchup["game_type"]   = game_type

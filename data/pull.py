@@ -248,6 +248,11 @@ def main(force=False):
     else:
         print(f"  Train/val postseason overlap: NONE (clean split)")
 
+    train_post = X_train[X_train["season_type"] == "postseason"]
+    if "round_num" in train_post.columns:
+        print(f"\n  Round distribution (train postseason):")
+        print(train_post["round_num"].value_counts().sort_index().to_string())
+
     non_numeric = [c for c in X_train.columns if X_train[c].dtype == object]
     print(f"  Non-numeric columns  : {non_numeric}  (expect [])")
 
