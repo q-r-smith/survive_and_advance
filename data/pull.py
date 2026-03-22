@@ -116,14 +116,15 @@ def build_features(data, seasons):
             return df[df[col] == year]
 
         features_by_season[year] = build_team_season_features(
-            team_stats_df   = _season_slice(data["team_stats"]),
-            player_stats_df = _season_slice(data["player_stats"]),
-            roster_df       = _season_slice(data["rosters"]),
-            srs_df          = _season_slice(data["srs"]),
-            adj_df          = _season_slice(data["adjusted_ratings"]),
-            elo_df          = _season_slice(data["elo"]),
-            games_df        = _season_slice(data["games"]),
-            season          = year,
+            team_stats_df      = _season_slice(data["team_stats"]),
+            player_stats_df    = _season_slice(data["player_stats"]),
+            roster_df          = _season_slice(data["rosters"]),
+            srs_df             = _season_slice(data["srs"]),
+            adj_df             = _season_slice(data["adjusted_ratings"]),
+            elo_df             = _season_slice(data["elo"]),
+            games_df           = data["games"],   # all seasons needed for seed regression
+            season             = year,
+            features_by_season = features_by_season,  # what's built so far (out-of-fold)
         )
     return features_by_season
 
