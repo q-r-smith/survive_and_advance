@@ -18,8 +18,11 @@ build/
 # macOS
 .DS_Store
 
-# data files
-data/cache/
+# cached data
+data/cache/*
+
+# diagnostic file
+diagnostic.py
 
 # claude files
 .claude/

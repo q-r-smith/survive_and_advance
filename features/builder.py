@@ -90,21 +90,29 @@ def compute_elo(elo_df, season):
     return elo_df[elo_df["season"] == season].set_index("team")["elo"].to_dict()
 
 
-def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
+def compute_hot_streak(games_df, season, srs_df=None, n=15, srs_scale=25.0):
     """
-    Split-window recency-weighted win rate for each team's regular season games.
+    Quality-weighted, recency-decayed win rate over each team's last n
+    regular season games.
 
-    Uses two windows to reward teams genuinely peaking in late Feb/March:
-      - Last n_recent games: weight = 2.0 (strong recency signal)
-      - Games n_recent+1 through n_total: weight = 1.0 (baseline context)
+    Each game's contribution is weighted by two factors multiplied together:
+      1. Recency: exponential decay — most recent game has highest weight
+      2. Quality: opponent SRS normalized to a multiplier centered at 1.0
+                  (srs_scale controls the normalization; default 25.0)
+                  Wins against strong opponents count more; wins against
+                  weak opponents count less.
 
-    Teams with no games fall back to 0.5.
-    Only uses games where seasonType == 'regular' (no tournament games).
+    If srs_df is None, falls back to recency-only weighting (original behavior).
+    Only uses regular season games (seasonType == 'regular').
     Returns dict: {team: hot_streak}
     """
     reg = games_df[
         (games_df["season"] == season) & (games_df["seasonType"] == "regular")
     ].sort_values("startDate")
+
+    srs_map = {}
+    if srs_df is not None:
+        srs_map = srs_df[srs_df["season"] == season].set_index("team")["rating"].to_dict()
 
     all_teams = pd.concat([reg["homeTeam"], reg["awayTeam"]]).unique()
     result = {}
@@ -112,7 +120,7 @@ def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
     for team in all_teams:
         team_games = reg[
             (reg["homeTeam"] == team) | (reg["awayTeam"] == team)
-        ].tail(n_total)
+        ].tail(n)
 
         if len(team_games) == 0:
             result[team] = 0.5
@@ -124,12 +132,22 @@ def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
             for _, g in team_games.iterrows()
         ], dtype=float)
 
-        n = len(wins)
-        recent_start = max(0, n - n_recent)
-        weights = np.ones(n)
-        weights[recent_start:] = 2.0
+        actual_n = len(wins)
+        recency_weights = np.exp(np.linspace(-2, 0, actual_n))
 
-        result[team] = float(np.average(wins, weights=weights))
+        if srs_df is None:
+            combined_weights = recency_weights
+        else:
+            quality_weights = np.array([
+                max(1.0 + (srs_map.get(
+                    g["awayTeam"] if g["homeTeam"] == team else g["homeTeam"],
+                    0.0
+                ) / srs_scale), 0.1)
+                for _, g in team_games.iterrows()
+            ])
+            combined_weights = recency_weights * quality_weights
+
+        result[team] = float(np.average(wins, weights=combined_weights))
 
     return result
 
@@ -353,7 +371,7 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     experience    = compute_experience(player_stats_df, roster_df, season)
     star          = compute_star_power(player_stats_df, season)
     elo           = compute_elo(elo_df, season)
-    hot_streak    = compute_hot_streak(games_df, season)
+    hot_streak    = compute_hot_streak(games_df, season, srs_df=srs_df)
     conf_strength = compute_conf_strength(srs_df, season)
     non_conf_sos  = compute_non_conf_sos(games_df, srs_df, season)
     road_win_pct  = compute_road_win_pct(games_df, season)

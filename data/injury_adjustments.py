@@ -229,13 +229,12 @@ def apply_injury_adjustments(
 
         # Capture "before" values
         # NOTE on model coefficients (as of current trained model):
-        #   diff_elo              coef ≈ +1.50  ← dominant feature, must reduce
+        #   diff_elo              coef ≈ +1.58  ← dominant feature, must reduce
+        #   diff_hot_streak       coef ≈ +0.52  ← positive (quality-weighted); reduce for injuries
+        #   diff_srs              coef ≈ -0.42  ← not adjusted (roster-level SRS; not meaningful)
         #   diff_efficiency_ratio coef ≈  0.00  ← collinear with adj ratings; near-zero effect
-        #   diff_hot_streak       coef ≈ -0.32  ← NEGATIVE: reducing hot_streak increases win prob!
         #   diff_star_power       coef ≈  0.00  ← near-zero
         #   diff_experience       coef ≈ +0.01  ← very small but correct sign
-        # elo is therefore the primary lever; hot_streak is left unchanged to avoid
-        # perverse sign effects.
         before = {
             "elo":              float(feats.get("elo",              float("nan"))),
             "efficiency_ratio": float(feats.get("efficiency_ratio", float("nan"))),
@@ -262,10 +261,16 @@ def apply_injury_adjustments(
                 * (1.0 - production_lost_pct * adj_scale)
             )
 
-        # hot_streak — NOT adjusted. The trained model's diff_hot_streak coefficient
-        # is negative (≈ -0.32), so *reducing* hot_streak *increases* win probability —
-        # the opposite of the intended effect.  Leaving hot_streak unchanged avoids
-        # the perverse outcome while elo carries the adjustment signal.
+        # hot_streak — reduce proportionally to production lost. The quality-weighted
+        # hot_streak has a positive coefficient (≈ +0.52), so reducing it correctly
+        # decreases win probability for an injured team. Dampened 0.5× because hot_streak
+        # reflects recent team outcomes, not just the missing player's contribution.
+        _HOT_STREAK_DAMPENING = 0.5
+        if np.isfinite(before["hot_streak"]):
+            feats["hot_streak"] = (
+                before["hot_streak"]
+                * (1.0 - production_lost_pct * _HOT_STREAK_DAMPENING * adj_scale)
+            )
 
         # star_power — adjust only if the missing player was the team's best PORPAG scorer.
         if is_star_anchor and np.isfinite(next_best_porpag):
