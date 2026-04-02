@@ -19,5 +19,12 @@
       "games_out": 6,
       "status": "out"
     }
+  ], 
+  "Gonzaga": [
+    {
+      "name": "Braden Huff",
+      "games_out": 15,
+      "status": "out"
+    }
   ]
 }

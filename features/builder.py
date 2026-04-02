@@ -12,7 +12,7 @@ TEAM_FEATURES = [
     # committee vs metrics gap (replaces upset_propensity)
     "predicted_seed_delta",
     # other team-level
-    "pace", "elo", "srs",
+    "pace", "elo",
     # composite / computed
     "experience", "star_power", "hot_streak",
     # schedule / conference context
@@ -148,44 +148,85 @@ def compute_hot_streak(games_df, season, n_recent=5, n_total=15, elo_scale=150.0
         combined = np.array(recency_weights) * np.array(quality_weights)
         result[team] = float(np.average(wins, weights=combined))
 
+    # ── Conference-relative normalization ─────────────────────────────────
+    # Normalize each team's hot_streak relative to conference peers using
+    # homeConference/awayConference from the games data.  This prevents
+    # mid-major inflation where a team going 8-2 in a weak conference
+    # scores similarly to a power conference team doing the same.
+    from collections import defaultdict
+    reg_conf = games_df[
+        (games_df["season"] == season) & (games_df["seasonType"] == "regular")
+    ]
+    conf_map: dict = {}
+    for _, g in reg_conf.iterrows():
+        conf_map[g["homeTeam"]] = g.get("homeConference") or None
+        conf_map[g["awayTeam"]] = g.get("awayConference") or None
+
+    conf_values: dict = defaultdict(list)
+    for team, hs in result.items():
+        if np.isfinite(hs):
+            conf = conf_map.get(team)
+            if conf:
+                conf_values[conf].append(hs)
+
+    conf_mean = {c: float(np.mean(v)) for c, v in conf_values.items() if len(v) >= 3}
+    conf_std  = {c: float(np.std(v))  for c, v in conf_values.items() if len(v) >= 3}
+
+    normalized: dict = {}
+    for team, hs in result.items():
+        if not np.isfinite(hs):
+            normalized[team] = hs
+            continue
+        conf = conf_map.get(team)
+        mu   = conf_mean.get(conf)
+        sig  = conf_std.get(conf)
+        if mu is None or sig is None or sig < 1e-6:
+            normalized[team] = hs
+        else:
+            z = (hs - mu) / sig
+            normalized[team] = float(np.clip(0.5 + 0.15 * z, 0.05, 0.95))
+    result = normalized
+    # ── End conference normalization ───────────────────────────────────────
+
     return result
 
 
-def compute_conf_strength(srs_df, season):
+def compute_conf_strength(elo_df, season):
     """
-    Leave-one-out average SRS of conference peers.
-    Requires a 'conference' column in srs_df; returns {} if absent.
+    Leave-one-out average ELO of conference peers.
+    Uses end-of-season ELO ratings as the conference quality signal.
+    Requires a 'conference' column in the ELO data; returns {} if absent.
     Returns dict: {team: conf_strength}
     """
-    s = srs_df[srs_df["season"] == season].copy()
+    s = elo_df[elo_df["season"] == season].copy()
     if "conference" not in s.columns or s.empty:
         return {}
 
-    s["conf_sum"]   = s.groupby("conference")["rating"].transform("sum")
-    s["conf_count"] = s.groupby("conference")["rating"].transform("count")
+    s["conf_sum"]   = s.groupby("conference")["elo"].transform("sum")
+    s["conf_count"] = s.groupby("conference")["elo"].transform("count")
 
-    # leave-one-out: exclude the team's own rating
+    # leave-one-out: exclude the team's own ELO
     s["loo_mean"] = np.where(
         s["conf_count"] > 1,
-        (s["conf_sum"] - s["rating"]) / (s["conf_count"] - 1),
+        (s["conf_sum"] - s["elo"]) / (s["conf_count"] - 1),
         np.nan,
     )
     return dict(zip(s["team"], s["loo_mean"].astype(float)))
 
 
-def compute_non_conf_sos(games_df, srs_df, season):
+def compute_non_conf_sos(games_df, elo_df, adj_df, season):
     """
-    Average SRS of non-conference opponents in regular-season games.
-    Falls back to np.nan if a team played fewer than 3 non-conference games.
-    Requires 'conference' column in srs_df; returns {} if absent.
+    Average end-of-season ELO of non-conference opponents in regular-season games.
+    Falls back to np.nan if fewer than 3 non-conference games.
+    Uses adjusted ratings data for conference membership lookup.
     Returns dict: {team: non_conf_sos}
     """
-    s = srs_df[srs_df["season"] == season]
-    if "conference" not in s.columns or s.empty:
+    adj = adj_df[adj_df["season"] == season]
+    if "conference" not in adj.columns or adj.empty:
         return {}
 
-    team_conf = s.set_index("team")["conference"].to_dict()
-    srs_map   = s.set_index("team")["rating"].to_dict()
+    team_conf = adj.set_index("team")["conference"].to_dict()
+    elo_map   = elo_df[elo_df["season"] == season].set_index("team")["elo"].to_dict()
 
     reg = games_df[
         (games_df["season"] == season) & (games_df["seasonType"] == "regular")
@@ -198,14 +239,14 @@ def compute_non_conf_sos(games_df, srs_df, season):
         team_c = team_conf.get(team)
         team_games = reg[(reg["homeTeam"] == team) | (reg["awayTeam"] == team)]
 
-        opp_srs = []
+        opp_elos = []
         for _, g in team_games.iterrows():
             opp = g["awayTeam"] if g["homeTeam"] == team else g["homeTeam"]
             opp_c = team_conf.get(opp)
-            if team_c and opp_c and team_c != opp_c and opp in srs_map:
-                opp_srs.append(srs_map[opp])
+            if team_c and opp_c and team_c != opp_c and opp in elo_map:
+                opp_elos.append(elo_map[opp])
 
-        result[team] = float(np.mean(opp_srs)) if len(opp_srs) >= 3 else np.nan
+        result[team] = float(np.mean(opp_elos)) if len(opp_elos) >= 3 else np.nan
 
     return result
 
@@ -320,8 +361,18 @@ def compute_predicted_seed_delta(games_df, season, features_by_season, current_s
             if pd.notna(g.get("awaySeed")):
                 hist_seeds[g["awayTeam"]] = int(float(g["awaySeed"]))
 
+        # ELO filter: restrict to teams at or above median tournament ELO
+        # to remove mid-major inflation (e.g. Grand Canyon outranking NC State)
+        hist_elos = [hist_features[t].get("elo", np.nan)
+                     for t in hist_seeds if t in hist_features]
+        hist_valid = [v for v in hist_elos if np.isfinite(v)]
+        hist_threshold = float(np.median(hist_valid)) if hist_valid else 0.0
+
         for team, seed in hist_seeds.items():
             if team not in hist_features:
+                continue
+            team_elo = hist_features[team].get("elo", np.nan)
+            if not np.isfinite(team_elo) or team_elo < hist_threshold:
                 continue
             feats = hist_features[team]
             row = [feats.get(f, np.nan) for f in REGRESSION_FEATURES]
@@ -348,7 +399,17 @@ def compute_predicted_seed_delta(games_df, season, features_by_season, current_s
     # only if not provided (should not normally happen).
     result = {}
     current_feats = current_season_features if current_season_features is not None else features_by_season.get(season, {})
+
+    # ELO filter for current season: same median-threshold logic
+    current_elo = {t: current_feats.get(t, {}).get("elo", np.nan) for t in current_seeds}
+    valid_elos = [v for v in current_elo.values() if np.isfinite(v)]
+    elo_threshold = float(np.median(valid_elos)) if valid_elos else 0.0
+
     for team, actual_seed in current_seeds.items():
+        team_elo = current_elo.get(team, np.nan)
+        if not np.isfinite(team_elo) or team_elo < elo_threshold:
+            result[team] = np.nan
+            continue
         if team not in current_feats:
             result[team] = np.nan
             continue
@@ -404,7 +465,7 @@ def compute_bracket_win_rate(games_df, season, tournament_teams):
     return result
 
 
-def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df, adj_df, elo_df, games_df, season,
+def build_team_season_features(team_stats_df, player_stats_df, roster_df, adj_df, elo_df, games_df, season,
                                features_by_season=None):
     """
     Compute end-of-season feature dict per team for a given season.
@@ -412,7 +473,6 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     Returns dict: {team_name: {feature: value, ...}}
     """
     ts = team_stats_df[team_stats_df["season"] == season]
-    srs_map = srs_df[srs_df["season"] == season].set_index("team")["rating"].to_dict()
     adj = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").set_index("team")
     if not adj.index.is_unique:
         adj = adj.groupby(level=0).first()  # belt-and-suspenders: guarantee scalar .at[] lookups
@@ -434,8 +494,8 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     star          = compute_star_power(player_stats_df, season)
     elo           = compute_elo(elo_df, season)
     hot_streak    = compute_hot_streak(games_df, season)
-    conf_strength = compute_conf_strength(srs_df, season)
-    non_conf_sos  = compute_non_conf_sos(games_df, srs_df, season)
+    conf_strength = compute_conf_strength(elo_df, season)
+    non_conf_sos  = compute_non_conf_sos(games_df, elo_df, adj_df, season)
     road_win_pct  = compute_road_win_pct(games_df, season)
     close_game    = compute_close_game_pct(games_df, season)
 
@@ -470,7 +530,6 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
             # Other team-level
             "pace":            row.get("pace", np.nan),
             "elo":             elo.get(team, np.nan),
-            "srs":             srs_map.get(team, np.nan),
             # Composite / computed
             "experience":      experience.get(team, np.nan),
             "star_power":      star.get(team, np.nan),
@@ -567,6 +626,13 @@ def build_training_set(games_df, team_features_by_season):
             seed_a=game.get("homeSeed") or None,
             seed_b=game.get("awaySeed") or None,
         )
+
+        # ── Zero-fill predicted_seed_delta for non-NCAA-postseason rows ───────
+        # conf tournament and regular season games have no seeds, so the delta
+        # is undefined — use 0.0 rather than NaN to avoid median imputation noise.
+        is_ncaa_postseason = is_postseason and not is_conf_tourn
+        if not is_ncaa_postseason and "diff_predicted_seed_delta" in matchup:
+            matchup["diff_predicted_seed_delta"] = 0.0
 
         # ── round_num metadata (not a model feature) ──────────────────────────
         if is_postseason:

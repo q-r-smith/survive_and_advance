@@ -48,7 +48,6 @@ HISTGBT_FEATURES = [
     "diff_upset_propensity",
     "diff_pace",
     "diff_elo",
-    "diff_srs",
     "diff_star_power",
     "diff_hot_streak",
     "diff_conf_strength",

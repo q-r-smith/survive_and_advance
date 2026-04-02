@@ -302,3 +302,224 @@ Games
     "state": "string"
   }
 ]
+
+
+Plays:
+[
+  {
+    "id": 0,
+    "sourceId": "string",
+    "gameId": 0,
+    "gameSourceId": "string",
+    "gameStartDate": "2026-03-22T19:05:17.105Z",
+    "season": 0,
+    "seasonType": "postseason",
+    "gameType": "string",
+    "tournament": "string",
+    "playType": "string",
+    "isHomeTeam": true,
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "teamSeed": 0,
+    "opponentId": 0,
+    "opponent": "string",
+    "opponentConference": "string",
+    "opponentSeed": 0,
+    "period": 0,
+    "clock": "string",
+    "secondsRemaining": 0,
+    "homeScore": 0,
+    "awayScore": 0,
+    "homeWinProbability": 0,
+    "scoringPlay": true,
+    "shootingPlay": true,
+    "scoreValue": 0,
+    "wallclock": "2026-03-22T19:05:17.105Z",
+    "playText": "string",
+    "participants": [
+      {
+        "name": "string",
+        "id": 0
+      }
+    ],
+    "onFloor": [
+      {
+        "team": "string",
+        "name": "string",
+        "id": 0
+      }
+    ],
+    "shotInfo": {
+      "shooter": {
+        "name": "string",
+        "id": 0
+      },
+      "made": true,
+      "range": "rim",
+      "assisted": true,
+      "assistedBy": {
+        "name": "string",
+        "id": 0
+      },
+      "location": {
+        "y": 0,
+        "x": 0
+      }
+    }
+  }
+]
+
+Play Types:
+[
+  {
+    "id": 0,
+    "name": "string"
+  }
+]
+
+Team Shooting
+
+[
+  {
+    "season": 0,
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "trackedShots": 0,
+    "assistedPct": 0,
+    "freeThrowRate": 0,
+    "dunks": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0,
+      "assistedPct": 0,
+      "assisted": 0
+    },
+    "layups": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0,
+      "assistedPct": 0,
+      "assisted": 0
+    },
+    "tipIns": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0
+    },
+    "twoPointJumpers": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0,
+      "assistedPct": 0,
+      "assisted": 0
+    },
+    "threePointJumpers": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0,
+      "assistedPct": 0,
+      "assisted": 0
+    },
+    "freeThrows": {
+      "made": 0,
+      "attempted": 0,
+      "pct": 0
+    },
+    "attemptsBreakdown": {
+      "threePointJumpers": 0,
+      "twoPointJumpers": 0,
+      "tipIns": 0,
+      "layups": 0,
+      "dunks": 0
+    }
+  }
+]
+
+Team Lineups
+[
+  {
+    "teamId": 0,
+    "team": "string",
+    "conference": "string",
+    "idHash": "string",
+    "athletes": [
+      {
+        "name": "string",
+        "id": 0
+      }
+    ],
+    "totalSeconds": 0,
+    "pace": 0,
+    "offenseRating": 0,
+    "defenseRating": 0,
+    "netRating": 0,
+    "teamStats": {
+      "possessions": 0,
+      "points": 0,
+      "blocks": 0,
+      "assists": 0,
+      "steals": 0,
+      "turnovers": 0,
+      "defensiveRebounds": 0,
+      "offensiveRebounds": 0,
+      "trueShooting": 0,
+      "fieldGoals": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "twoPointers": "string",
+      "threePointers": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "freeThrows": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "fourFactors": {
+        "freeThrowRate": 0,
+        "offensiveReboundPct": 0,
+        "turnoverRatio": 0,
+        "effectiveFieldGoalPct": 0
+      }
+    },
+    "opponentStats": {
+      "possessions": 0,
+      "points": 0,
+      "blocks": 0,
+      "assists": 0,
+      "steals": 0,
+      "turnovers": 0,
+      "defensiveRebounds": 0,
+      "offensiveRebounds": 0,
+      "trueShooting": 0,
+      "fieldGoals": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "twoPointers": "string",
+      "threePointers": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "freeThrows": {
+        "made": 0,
+        "attempted": 0,
+        "pct": 0
+      },
+      "fourFactors": {
+        "freeThrowRate": 0,
+        "offensiveReboundPct": 0,
+        "turnoverRatio": 0,
+        "effectiveFieldGoalPct": 0
+      }
+    }
+  }
+]
