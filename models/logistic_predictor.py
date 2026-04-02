@@ -90,4 +90,9 @@ class LogisticPredictor:
 
     @classmethod
     def load(cls, path: str = MODEL_PATH) -> "LogisticPredictor":
-        return joblib.load(path)
+        obj = joblib.load(path)
+        # Patch models saved with older sklearn that stored multi_class attribute
+        clf = obj.pipeline.named_steps.get("clf")
+        if clf is not None and not hasattr(clf, "multi_class"):
+            clf.multi_class = "auto"
+        return obj

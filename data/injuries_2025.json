@@ -1,0 +1,16 @@
+{
+  "Iowa State": [
+    {
+      "name": "Keshon Gilbert",
+      "games_out": 6,
+      "status": "out"
+    }
+  ],
+  "Duke": [
+    {
+      "name": "Caleb Foster",
+      "games_out": 3,
+      "status": "out"
+    }
+  ]
+}

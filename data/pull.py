@@ -21,7 +21,6 @@ from data.loader import (
     get_team_stats,
     get_player_stats,
     get_roster,
-    get_srs,
     get_adjusted_ratings,
     get_elo,
 )
@@ -72,7 +71,7 @@ def pull_raw(seasons, force=False):
     Pull and cache one CSV per data type, covering all requested seasons.
     Pass force=True to re-fetch even if cache exists.
     """
-    all_data = {k: [] for k in ["games", "team_stats", "player_stats", "rosters", "srs", "adjusted_ratings", "elo"]}
+    all_data = {k: [] for k in ["games", "team_stats", "player_stats", "rosters", "adjusted_ratings", "elo"]}
 
     for year in seasons:
         print(f"\n── {year} ──────────────────────────")
@@ -87,9 +86,6 @@ def pull_raw(seasons, force=False):
         )
         all_data["rosters"].append(
             _load_or_fetch(f"rosters_{year}", get_roster, year, force=force)
-        )
-        all_data["srs"].append(
-            _load_or_fetch(f"srs_{year}", get_srs, year, force=force)
         )
         all_data["adjusted_ratings"].append(
             _load_or_fetch(f"adjusted_ratings_{year}", get_adjusted_ratings, year, force=force)
@@ -116,14 +112,14 @@ def build_features(data, seasons):
             return df[df[col] == year]
 
         features_by_season[year] = build_team_season_features(
-            team_stats_df   = _season_slice(data["team_stats"]),
-            player_stats_df = _season_slice(data["player_stats"]),
-            roster_df       = _season_slice(data["rosters"]),
-            srs_df          = _season_slice(data["srs"]),
-            adj_df          = _season_slice(data["adjusted_ratings"]),
-            elo_df          = _season_slice(data["elo"]),
-            games_df        = _season_slice(data["games"]),
-            season          = year,
+            team_stats_df      = _season_slice(data["team_stats"]),
+            player_stats_df    = _season_slice(data["player_stats"]),
+            roster_df          = _season_slice(data["rosters"]),
+            adj_df             = _season_slice(data["adjusted_ratings"]),
+            elo_df             = _season_slice(data["elo"]),
+            games_df           = data["games"],   # all seasons needed for seed regression
+            season             = year,
+            features_by_season = features_by_season,  # what's built so far (out-of-fold)
         )
     return features_by_season
 

@@ -854,6 +854,10 @@ if __name__ == "__main__":
         "--no-feature-scales", action="store_true",
         help="Disable round-specific feature scaling (use global model for all rounds)",
     )
+    parser.add_argument(
+        "--injuries", type=str, default=None,
+        help="Path to injury JSON file (e.g. data/injuries_2026.json)",
+    )
     args = parser.parse_args()
 
     round_alphas = None
@@ -886,6 +890,17 @@ if __name__ == "__main__":
               f"Available: {sorted(features_by_season.keys())}")
         sys.exit(1)
     print(f"  Loaded features_by_season — {len(features)} teams in {args.season}")
+
+    # Apply injury adjustments before building probability matrices
+    if args.injuries:
+        from data.injury_adjustments import (
+            apply_injury_adjustments, load_player_stats, print_injury_report
+        )
+        player_stats_df = load_player_stats(args.season)
+        features, report = apply_injury_adjustments(
+            features, args.injuries, player_stats_df
+        )
+        print_injury_report(report)
 
     # Load model
     if args.model == "logistic":

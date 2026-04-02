@@ -1,3 +1,4 @@
+cbbd>=1.23.2
 requests
 python-dotenv
 pandas
@@ -6,4 +7,5 @@ scikit-learn
 scipy
 joblib
 lightgbm
-streamlit
+streamlit>=1.30.0
+altair>=5.0.0

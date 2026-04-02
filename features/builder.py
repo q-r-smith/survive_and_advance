@@ -9,10 +9,10 @@ TEAM_FEATURES = [
     "adj_off_rating", "adj_def_rating", "net_rating", "efficiency_ratio",
     # normalized season ranks (0 = best, 1 = worst)
     "adj_off_rank", "adj_def_rank",
-    # upset signal (efficiency vs seed expectation; NaN for unseeded teams)
-    "upset_propensity",
+    # committee vs metrics gap (replaces upset_propensity)
+    "predicted_seed_delta",
     # other team-level
-    "pace", "elo", "srs",
+    "pace", "elo",
     # composite / computed
     "experience", "star_power", "hot_streak",
     # schedule / conference context
@@ -90,16 +90,21 @@ def compute_elo(elo_df, season):
     return elo_df[elo_df["season"] == season].set_index("team")["elo"].to_dict()
 
 
-def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
+def compute_hot_streak(games_df, season, n_recent=5, n_total=15, elo_scale=150.0):
     """
-    Split-window recency-weighted win rate for each team's regular season games.
+    Quality-weighted, recency-split win rate over each team's last n_total
+    regular season games.
 
-    Uses two windows to reward teams genuinely peaking in late Feb/March:
-      - Last n_recent games: weight = 2.0 (strong recency signal)
-      - Games n_recent+1 through n_total: weight = 1.0 (baseline context)
+    Each game's contribution is weighted by two factors multiplied together:
+      1. Recency: split-window — last n_recent games get weight 2.0,
+                  older games get weight 1.0
+      2. Quality: opponent pre-game ELO centered at 1500 (D1 average),
+                  scaled by elo_scale.
+                  1700 ELO → 2.33x, 1500 ELO → 1.0x, 1300 ELO → floored to 0.1x
+                  Unknown opponent ELO → 1.0 (treated as average).
 
-    Teams with no games fall back to 0.5.
-    Only uses games where seasonType == 'regular' (no tournament games).
+    Uses homeTeamEloStart / awayTeamEloStart from the games DataFrame.
+    Only uses regular season games (seasonType == 'regular').
     Returns dict: {team: hot_streak}
     """
     reg = games_df[
@@ -118,57 +123,110 @@ def compute_hot_streak(games_df, season, n_recent=5, n_total=15):
             result[team] = 0.5
             continue
 
-        wins = np.array([
-            (1 if g["homeWinner"] else 0) if g["homeTeam"] == team
-            else (0 if g["homeWinner"] else 1)
-            for _, g in team_games.iterrows()
-        ], dtype=float)
+        actual_n = len(team_games)
+        wins, recency_weights, quality_weights = [], [], []
 
-        n = len(wins)
-        recent_start = max(0, n - n_recent)
-        weights = np.ones(n)
-        weights[recent_start:] = 2.0
+        for i, (_, g) in enumerate(team_games.iterrows()):
+            # Win/loss
+            if g["homeTeam"] == team:
+                wins.append(1.0 if g["homeWinner"] else 0.0)
+                opp_elo = float(g.get("awayTeamEloStart", np.nan))
+            else:
+                wins.append(0.0 if g["homeWinner"] else 1.0)
+                opp_elo = float(g.get("homeTeamEloStart", np.nan))
 
-        result[team] = float(np.average(wins, weights=weights))
+            # Recency: last n_recent games (tail of window) get weight 2.0
+            recency_weights.append(2.0 if i >= actual_n - n_recent else 1.0)
+
+            # Quality from opponent pre-game ELO
+            if np.isfinite(opp_elo):
+                qw = max(1.0 + (opp_elo - 1500.0) / elo_scale, 0.1)
+            else:
+                qw = 1.0
+            quality_weights.append(qw)
+
+        combined = np.array(recency_weights) * np.array(quality_weights)
+        result[team] = float(np.average(wins, weights=combined))
+
+    # ── Conference-relative normalization ─────────────────────────────────
+    # Normalize each team's hot_streak relative to conference peers using
+    # homeConference/awayConference from the games data.  This prevents
+    # mid-major inflation where a team going 8-2 in a weak conference
+    # scores similarly to a power conference team doing the same.
+    from collections import defaultdict
+    reg_conf = games_df[
+        (games_df["season"] == season) & (games_df["seasonType"] == "regular")
+    ]
+    conf_map: dict = {}
+    for _, g in reg_conf.iterrows():
+        conf_map[g["homeTeam"]] = g.get("homeConference") or None
+        conf_map[g["awayTeam"]] = g.get("awayConference") or None
+
+    conf_values: dict = defaultdict(list)
+    for team, hs in result.items():
+        if np.isfinite(hs):
+            conf = conf_map.get(team)
+            if conf:
+                conf_values[conf].append(hs)
+
+    conf_mean = {c: float(np.mean(v)) for c, v in conf_values.items() if len(v) >= 3}
+    conf_std  = {c: float(np.std(v))  for c, v in conf_values.items() if len(v) >= 3}
+
+    normalized: dict = {}
+    for team, hs in result.items():
+        if not np.isfinite(hs):
+            normalized[team] = hs
+            continue
+        conf = conf_map.get(team)
+        mu   = conf_mean.get(conf)
+        sig  = conf_std.get(conf)
+        if mu is None or sig is None or sig < 1e-6:
+            normalized[team] = hs
+        else:
+            z = (hs - mu) / sig
+            normalized[team] = float(np.clip(0.5 + 0.15 * z, 0.05, 0.95))
+    result = normalized
+    # ── End conference normalization ───────────────────────────────────────
 
     return result
 
 
-def compute_conf_strength(srs_df, season):
+def compute_conf_strength(elo_df, season):
     """
-    Leave-one-out average SRS of conference peers.
-    Requires a 'conference' column in srs_df; returns {} if absent.
+    Leave-one-out average ELO of conference peers.
+    Uses end-of-season ELO ratings as the conference quality signal.
+    Requires a 'conference' column in the ELO data; returns {} if absent.
     Returns dict: {team: conf_strength}
     """
-    s = srs_df[srs_df["season"] == season].copy()
+    s = elo_df[elo_df["season"] == season].copy()
     if "conference" not in s.columns or s.empty:
         return {}
 
-    s["conf_sum"]   = s.groupby("conference")["rating"].transform("sum")
-    s["conf_count"] = s.groupby("conference")["rating"].transform("count")
+    s["conf_sum"]   = s.groupby("conference")["elo"].transform("sum")
+    s["conf_count"] = s.groupby("conference")["elo"].transform("count")
 
-    # leave-one-out: exclude the team's own rating
+    # leave-one-out: exclude the team's own ELO
     s["loo_mean"] = np.where(
         s["conf_count"] > 1,
-        (s["conf_sum"] - s["rating"]) / (s["conf_count"] - 1),
+        (s["conf_sum"] - s["elo"]) / (s["conf_count"] - 1),
         np.nan,
     )
     return dict(zip(s["team"], s["loo_mean"].astype(float)))
 
 
-def compute_non_conf_sos(games_df, srs_df, season):
+def compute_non_conf_sos(games_df, elo_df, adj_df, season):
     """
-    Average SRS of non-conference opponents in regular-season games.
-    Falls back to np.nan if a team played fewer than 3 non-conference games.
-    Requires 'conference' column in srs_df; returns {} if absent.
+    Average end-of-season ELO of non-conference opponents in regular-season games.
+    Falls back to np.nan if fewer than 3 non-conference games.
+    Uses adjusted ratings data for conference membership lookup.
     Returns dict: {team: non_conf_sos}
     """
-    s = srs_df[srs_df["season"] == season]
-    if "conference" not in s.columns or s.empty:
+    adj = adj_df[adj_df["season"] == season]
+    if "conference" not in adj.columns or adj.empty:
         return {}
 
-    team_conf = s.set_index("team")["conference"].to_dict()
-    srs_map   = s.set_index("team")["rating"].to_dict()
+    team_conf = adj.set_index("team")["conference"].to_dict()
+    elo_map   = elo_df[elo_df["season"] == season].set_index("team")["elo"].to_dict()
 
     reg = games_df[
         (games_df["season"] == season) & (games_df["seasonType"] == "regular")
@@ -181,14 +239,14 @@ def compute_non_conf_sos(games_df, srs_df, season):
         team_c = team_conf.get(team)
         team_games = reg[(reg["homeTeam"] == team) | (reg["awayTeam"] == team)]
 
-        opp_srs = []
+        opp_elos = []
         for _, g in team_games.iterrows():
             opp = g["awayTeam"] if g["homeTeam"] == team else g["homeTeam"]
             opp_c = team_conf.get(opp)
-            if team_c and opp_c and team_c != opp_c and opp in srs_map:
-                opp_srs.append(srs_map[opp])
+            if team_c and opp_c and team_c != opp_c and opp in elo_map:
+                opp_elos.append(elo_map[opp])
 
-        result[team] = float(np.mean(opp_srs)) if len(opp_srs) >= 3 else np.nan
+        result[team] = float(np.mean(opp_elos)) if len(opp_elos) >= 3 else np.nan
 
     return result
 
@@ -245,43 +303,125 @@ def compute_close_game_pct(games_df, season):
     return result
 
 
-def compute_upset_propensity(games_df, season, efficiency_ratio_map):
+def compute_predicted_seed_delta(games_df, season, features_by_season, current_season_features=None):
     """
-    Deviation of a team's efficiency_ratio from the mean for their seed group.
-    Positive = overperformer vs seed; negative = underperformer vs seed.
-    NaN for unseeded teams.
-    Returns dict: {team: upset_propensity}
+    For each NCAA tournament team in this season, compute the residual between
+    their actual seed and their predicted seed from an efficiency-based regression.
+
+    Predicted seed is fit using all OTHER seasons (out-of-fold) to prevent
+    leakage. Features used: efficiency_ratio, elo, adj_off_rating, adj_def_rating,
+    net_rating.
+
+    current_season_features: the just-built first-pass feature dict for this season.
+    Must be passed explicitly because features_by_season does not yet contain the
+    current season at call time (it is being built right now).
+
+    Positive delta = seeded worse than metrics suggest (potential overperformer)
+    Negative delta = seeded better than metrics suggest (potential underperformer)
+    Zero / NaN = no seed data or unseeded team
+
+    Returns dict: {team: predicted_seed_delta}
     """
-    from collections import defaultdict
-    post = games_df[
-        (games_df["season"] == season) & (games_df["seasonType"] == "postseason")
+    from sklearn.linear_model import Ridge
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.pipeline import Pipeline
+
+    REGRESSION_FEATURES = [
+        "efficiency_ratio", "elo", "adj_off_rating", "adj_def_rating", "net_rating"
     ]
 
-    team_seed = {}
+    # Get tournament seeds for the current season
+    post = games_df[
+        (games_df["season"] == season) &
+        (games_df["seasonType"] == "postseason")
+    ]
+    current_seeds: dict = {}
     for _, g in post.iterrows():
         if pd.notna(g.get("homeSeed")):
-            team_seed[g["homeTeam"]] = int(g["homeSeed"])
+            current_seeds[g["homeTeam"]] = int(float(g["homeSeed"]))
         if pd.notna(g.get("awaySeed")):
-            team_seed[g["awayTeam"]] = int(g["awaySeed"])
+            current_seeds[g["awayTeam"]] = int(float(g["awaySeed"]))
 
-    if not team_seed:
+    if not current_seeds:
         return {}
 
-    seed_ratios = defaultdict(list)
-    for team, seed in team_seed.items():
-        er = efficiency_ratio_map.get(team)
-        if er is not None and np.isfinite(er):
-            seed_ratios[seed].append(er)
+    # Build training data from all other seasons
+    X_rows, y_seeds = [], []
+    for hist_season, hist_features in features_by_season.items():
+        if hist_season == season:
+            continue  # out-of-fold: exclude current season
+        hist_post = games_df[
+            (games_df["season"] == hist_season) &
+            (games_df["seasonType"] == "postseason")
+        ]
+        hist_seeds: dict = {}
+        for _, g in hist_post.iterrows():
+            if pd.notna(g.get("homeSeed")):
+                hist_seeds[g["homeTeam"]] = int(float(g["homeSeed"]))
+            if pd.notna(g.get("awaySeed")):
+                hist_seeds[g["awayTeam"]] = int(float(g["awaySeed"]))
 
-    seed_mean = {seed: float(np.mean(ratios)) for seed, ratios in seed_ratios.items()}
+        # ELO filter: restrict to teams at or above median tournament ELO
+        # to remove mid-major inflation (e.g. Grand Canyon outranking NC State)
+        hist_elos = [hist_features[t].get("elo", np.nan)
+                     for t in hist_seeds if t in hist_features]
+        hist_valid = [v for v in hist_elos if np.isfinite(v)]
+        hist_threshold = float(np.median(hist_valid)) if hist_valid else 0.0
 
+        for team, seed in hist_seeds.items():
+            if team not in hist_features:
+                continue
+            team_elo = hist_features[team].get("elo", np.nan)
+            if not np.isfinite(team_elo) or team_elo < hist_threshold:
+                continue
+            feats = hist_features[team]
+            row = [feats.get(f, np.nan) for f in REGRESSION_FEATURES]
+            if any(np.isnan(v) for v in row):
+                continue
+            X_rows.append(row)
+            y_seeds.append(seed)
+
+    if len(X_rows) < 50:
+        # Not enough historical data — return zeros
+        return {team: 0.0 for team in current_seeds}
+
+    X_hist = np.array(X_rows)
+    y_hist = np.array(y_seeds, dtype=float)
+
+    model = Pipeline([
+        ("scaler", StandardScaler()),
+        ("ridge",  Ridge(alpha=1.0))
+    ])
+    model.fit(X_hist, y_hist)
+
+    # Predict seeds for current tournament teams and compute delta
+    # Use explicitly passed first-pass features; fall back to features_by_season
+    # only if not provided (should not normally happen).
     result = {}
-    for team, seed in team_seed.items():
-        er = efficiency_ratio_map.get(team)
-        if er is not None and np.isfinite(er) and seed in seed_mean:
-            result[team] = float(er - seed_mean[seed])
-        else:
+    current_feats = current_season_features if current_season_features is not None else features_by_season.get(season, {})
+
+    # ELO filter for current season: same median-threshold logic
+    current_elo = {t: current_feats.get(t, {}).get("elo", np.nan) for t in current_seeds}
+    valid_elos = [v for v in current_elo.values() if np.isfinite(v)]
+    elo_threshold = float(np.median(valid_elos)) if valid_elos else 0.0
+
+    for team, actual_seed in current_seeds.items():
+        team_elo = current_elo.get(team, np.nan)
+        if not np.isfinite(team_elo) or team_elo < elo_threshold:
             result[team] = np.nan
+            continue
+        if team not in current_feats:
+            result[team] = np.nan
+            continue
+        feats = current_feats[team]
+        row = [feats.get(f, np.nan) for f in REGRESSION_FEATURES]
+        if any(np.isnan(v) for v in row):
+            result[team] = np.nan
+            continue
+        predicted_seed = float(model.predict([row])[0])
+        predicted_seed = np.clip(predicted_seed, 1.0, 16.0)
+        result[team] = float(actual_seed - predicted_seed)
+
     return result
 
 
@@ -325,14 +465,14 @@ def compute_bracket_win_rate(games_df, season, tournament_teams):
     return result
 
 
-def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df, adj_df, elo_df, games_df, season):
+def build_team_season_features(team_stats_df, player_stats_df, roster_df, adj_df, elo_df, games_df, season,
+                               features_by_season=None):
     """
     Compute end-of-season feature dict per team for a given season.
     IMPORTANT: all inputs must be available before tournament selection date.
     Returns dict: {team_name: {feature: value, ...}}
     """
     ts = team_stats_df[team_stats_df["season"] == season]
-    srs_map = srs_df[srs_df["season"] == season].set_index("team")["rating"].to_dict()
     adj = adj_df[adj_df["season"] == season].drop_duplicates(subset="team").set_index("team")
     if not adj.index.is_unique:
         adj = adj.groupby(level=0).first()  # belt-and-suspenders: guarantee scalar .at[] lookups
@@ -354,8 +494,8 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
     star          = compute_star_power(player_stats_df, season)
     elo           = compute_elo(elo_df, season)
     hot_streak    = compute_hot_streak(games_df, season)
-    conf_strength = compute_conf_strength(srs_df, season)
-    non_conf_sos  = compute_non_conf_sos(games_df, srs_df, season)
+    conf_strength = compute_conf_strength(elo_df, season)
+    non_conf_sos  = compute_non_conf_sos(games_df, elo_df, adj_df, season)
     road_win_pct  = compute_road_win_pct(games_df, season)
     close_game    = compute_close_game_pct(games_df, season)
 
@@ -385,12 +525,11 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
             # Normalized season ranks (0 = best, 1 = worst)
             "adj_off_rank":    adj_off_rank_map.get(team, np.nan),
             "adj_def_rank":    adj_def_rank_map.get(team, np.nan),
-            # upset_propensity filled in second pass below
-            "upset_propensity": np.nan,
+            # predicted_seed_delta filled in second pass below
+            "predicted_seed_delta": np.nan,
             # Other team-level
             "pace":            row.get("pace", np.nan),
             "elo":             elo.get(team, np.nan),
-            "srs":             srs_map.get(team, np.nan),
             # Composite / computed
             "experience":      experience.get(team, np.nan),
             "star_power":      star.get(team, np.nan),
@@ -404,11 +543,19 @@ def build_team_season_features(team_stats_df, player_stats_df, roster_df, srs_df
             "bracket_win_rate": np.nan,
         }
 
-    # Second pass: upset_propensity requires efficiency_ratio for all teams first
-    efficiency_ratio_map = {t: f["efficiency_ratio"] for t, f in features.items()}
-    upset_prop = compute_upset_propensity(games_df, season, efficiency_ratio_map)
+    # Second pass: compute predicted_seed_delta (requires features from other seasons)
+    if features_by_season is not None:
+        seed_delta = compute_predicted_seed_delta(
+            games_df=games_df,
+            season=season,
+            features_by_season=features_by_season,
+            current_season_features=features,  # first-pass features for current season
+        )
+    else:
+        seed_delta = {}
+
     for team in features:
-        features[team]["upset_propensity"] = upset_prop.get(team, np.nan)
+        features[team]["predicted_seed_delta"] = seed_delta.get(team, np.nan)
 
     return features
 
@@ -479,6 +626,13 @@ def build_training_set(games_df, team_features_by_season):
             seed_a=game.get("homeSeed") or None,
             seed_b=game.get("awaySeed") or None,
         )
+
+        # ── Zero-fill predicted_seed_delta for non-NCAA-postseason rows ───────
+        # conf tournament and regular season games have no seeds, so the delta
+        # is undefined — use 0.0 rather than NaN to avoid median imputation noise.
+        is_ncaa_postseason = is_postseason and not is_conf_tourn
+        if not is_ncaa_postseason and "diff_predicted_seed_delta" in matchup:
+            matchup["diff_predicted_seed_delta"] = 0.0
 
         # ── round_num metadata (not a model feature) ──────────────────────────
         if is_postseason:
