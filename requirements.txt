@@ -1,3 +1,4 @@
+cbbd>=1.23.2
 requests
 python-dotenv
 pandas
