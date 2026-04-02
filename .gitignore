@@ -23,3 +23,6 @@ data/cache/
 
 # claude files
 .claude/
+
+# diagnostic
+diagnostic.py

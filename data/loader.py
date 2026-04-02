@@ -90,6 +90,10 @@ def get_elo(season):
     """End-of-season ELO rating per team."""
     return pd.DataFrame(_get("/ratings/elo", {"season": season}))
 
+def get_play_by_play(game_id):
+    """Fetch play-by-play data for a given game ID."""
+    return pd.DataFrame(_get(f"/plays/game/{game_id}"))
+
 
 def load_all_seasons(start=2015, end=2023):
     """
