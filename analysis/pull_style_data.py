@@ -12,6 +12,7 @@ import argparse
 import os
 from pathlib import Path
 import sys
+import time
 
 import pandas as pd
 import requests
@@ -77,6 +78,10 @@ def get_team_shooting(season: int) -> pd.DataFrame:
     return df
 
 
+def get_play_by_play(season: int, team: str, shooting_only: bool = False) -> pd.DataFrame:
+    return pd.DataFrame(_get(f"/plays/team/?season={season}&team={team}&shootingPlaysOnly={str(shooting_only).lower()}", timeout=60))
+
+
 
 # ── Cache helpers ─────────────────────────────────────────────────────────────
 
@@ -84,8 +89,9 @@ def _cache_path(name: str) -> str:
     return os.path.join(RAW_DIR, f"{name}.csv")
 
 
-def _load_or_fetch(name: str, fetch_fn, season: int, force: bool) -> pd.DataFrame:
+def _load_or_fetch(name: str, fetch_fn, season: int, force: bool, play_by_play: bool = False) -> pd.DataFrame:
     path = _cache_path(name)
+    
     if not force and os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             df = pd.read_csv(path)
@@ -96,11 +102,67 @@ def _load_or_fetch(name: str, fetch_fn, season: int, force: bool) -> pd.DataFram
             pass
         print(f"  cache corrupt — re-fetching {name} ...")
     print(f"  fetching {name} ...")
-    df = fetch_fn(season)
+    if play_by_play:
+        partial_path = path + ".partial"
+        try:
+            curr_dir = os.getcwd()
+            teams_df = pd.read_csv(os.path.join(curr_dir, "data", "cache", "raw", f"team_stats_{season}.csv"))
+            teams = teams_df.dropna(subset=["conference"])["team"].tolist()
+        except Exception:
+            from data.loader import get_team_stats
+            teams_df = get_team_stats(season)
+            teams = teams_df.dropna(subset=["conference"])["team"].tolist()
+
+        # resume from partial if it exists
+        already_fetched = set()
+        if os.path.exists(partial_path):
+            try:
+                partial_df = pd.read_csv(partial_path)
+                if "team" in partial_df.columns:
+                    already_fetched = set(partial_df["team"].unique())
+                    print(f"  resuming — {len(already_fetched)} teams already cached in partial")
+            except Exception:
+                pass
+
+        os.makedirs(os.path.dirname(partial_path), exist_ok=True)
+        for team in teams:
+            if team in already_fetched:
+                continue
+            print(f"    fetching play-by-play for {season} {team} ...")
+            for attempt in range(3):
+                try:
+                    team_df = fetch_fn(season, team)
+                    if not team_df.empty and team_df.notna().any().any():
+                        team_df["team"] = team
+                        team_df.to_csv(
+                            partial_path,
+                            mode="a",
+                            header=not os.path.exists(partial_path) or os.path.getsize(partial_path) == 0,
+                            index=False,
+                        )
+                    break
+                except Exception as team_err:
+                    if attempt < 2:
+                        wait = 5 * (attempt + 1)
+                        print(f"      retry {attempt + 1}/2 for {team} after {wait}s ({team_err})")
+                        time.sleep(wait)
+                    else:
+                        print(f"      WARNING: skipping {team} after 3 failures ({team_err})")
+
+        if os.path.exists(partial_path) and os.path.getsize(partial_path) > 0:
+            df = pd.read_csv(partial_path).drop_duplicates().reset_index(drop=True)
+        else:
+            df = pd.DataFrame()
+    else:
+        df = fetch_fn(season)
     if len(df) > 0:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         df.to_csv(path, index=False)
         print(f"  saved {path}  ({len(df):,} rows)")
+        if play_by_play:
+            partial = path + ".partial"
+            if os.path.exists(partial):
+                os.remove(partial)
     else:
         print(f"  WARNING: no data returned for {name}")
     return df
@@ -121,8 +183,12 @@ def main():
     args = parser.parse_args()
 
     for season in args.seasons:
-        print(f"\n── {season} ──────────────────────────")
+        print(f"\n── {season}: Team Shooting ──────────────────────────")
         _load_or_fetch(f"team_shooting_{season}", get_team_shooting, season, args.force)
+
+    for season in args.seasons:
+        print(f"\n── {season}: Play-by-Play ──────────────────────────")
+        _load_or_fetch(f"play_by_play_{season}", get_play_by_play, season, args.force, play_by_play=True)
 
     print("\nDone.")
 

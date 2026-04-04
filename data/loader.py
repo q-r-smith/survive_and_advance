@@ -147,6 +147,9 @@ def get_play_by_play(game_id):
     """Fetch play-by-play data for a given game ID."""
     return pd.DataFrame(_get(f"/plays/game/{game_id}"))
 
+def get_plays_by_team(season, team):
+    return pd.DataFrame(_get("/plays/team/season", {"season": season, "team": team}))
+
 
 def load_all_seasons(start=2015, end=2023):
     """

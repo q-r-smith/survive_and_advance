@@ -20,6 +20,7 @@ build/
 
 # cached data
 data/cache/*
+analysis/cache/*
 
 # diagnostic file
 diagnostic.py
