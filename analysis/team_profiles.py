@@ -63,6 +63,7 @@ import pandas as pd
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
+from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -497,6 +498,143 @@ def cluster_teams(
     return df, centroid_df, scaler, pca, km
 
 
+# ── GMM clustering ────────────────────────────────────────────────────────────
+
+def cluster_teams_gmm(
+    feature_df: pd.DataFrame,
+    k: int,
+    feature_cols: list = None,
+    zscore_by_season: bool = False,
+    n_pca_components: int = 0,
+    pca_variance: float = 0.80,
+    cov_type: str = "diag",
+    seed: int = 42,
+) -> tuple:
+    """
+    StandardScaler → optional within-season Z-score → optional PCA → GaussianMixture.
+
+    Hard labels are stored as cluster_label (same interface as cluster_teams).
+    dist_to_centroid is the per-sample negative log-likelihood — lower means the
+    sample is more typical of its assigned component; higher = stylistic outlier.
+    Soft probabilities are stored as gmm_proba_0 … gmm_proba_{k-1}.
+
+    Returns (labeled_df, centroid_df, scaler, pca_or_None, gmm).
+    labeled_df: all feature columns + cluster_label + dist_to_centroid + gmm_proba_*.
+    centroid_df: cluster_label + feature columns back-projected to original feature space.
+    """
+    if feature_cols is None:
+        feature_cols = [c for c in FEATURE_COLS if c in feature_df.columns]
+    else:
+        feature_cols = [c for c in feature_cols if c in feature_df.columns]
+
+    df = _prep_matrix(feature_df, feature_cols)
+
+    if len(df) < k * 2:
+        print(f"WARNING: only {len(df)} rows — too few for k={k}. Skipping.")
+        return feature_df, None, None, None, None
+
+    X, scaler, pca, df = _scale_and_pca(
+        df, feature_cols, zscore_by_season, n_pca_components, pca_variance, seed
+    )
+
+    gmm = GaussianMixture(
+        n_components=k,
+        covariance_type=cov_type,
+        init_params="kmeans",
+        n_init=10,
+        max_iter=300,
+        random_state=seed,
+    )
+    gmm.fit(X)
+
+    labels      = gmm.predict(X)
+    log_proba   = gmm.score_samples(X)   # per-sample log-likelihood
+    nll         = -log_proba              # negative log-likelihood as distance proxy
+    soft_proba  = gmm.predict_proba(X)   # (n_samples, k)
+
+    df = df.copy()
+    df["cluster_label"]    = labels
+    df["dist_to_centroid"] = nll
+    for j in range(k):
+        df[f"gmm_proba_{j}"] = soft_proba[:, j]
+
+    if len(df) > k:
+        sil = silhouette_score(X, labels)
+        bic = gmm.bic(X)
+        aic = gmm.aic(X)
+        print(f"  k={k}  silhouette={sil:.4f}  BIC={bic:.1f}  AIC={aic:.1f}  n={len(df)}")
+
+    # Back-project GMM component means to original feature space
+    centers = gmm.means_.copy()   # (k, n_pca_components or n_features)
+    if pca is not None:
+        centers = pca.inverse_transform(centers)
+    centers_orig = scaler.inverse_transform(centers)
+
+    centroid_df = pd.DataFrame(centers_orig, columns=feature_cols)
+    centroid_df.index.name = "cluster_label"
+    centroid_df = centroid_df.reset_index()
+
+    return df, centroid_df, scaler, pca, gmm
+
+
+def sweep_k_gmm(
+    feature_df: pd.DataFrame,
+    feature_cols: list = None,
+    zscore_by_season: bool = False,
+    n_pca_components: int = 0,
+    pca_variance: float = 0.80,
+    cov_type: str = "diag",
+    k_range=range(2, 13),
+    seed: int = 42,
+) -> dict:
+    """Try k=2..12 with GMM, print silhouette + BIC + AIC table, return metrics dict."""
+    if feature_cols is None:
+        feature_cols = [c for c in FEATURE_COLS if c in feature_df.columns]
+    else:
+        feature_cols = [c for c in feature_cols if c in feature_df.columns]
+
+    df = _prep_matrix(feature_df, feature_cols)
+    X, scaler, pca, df = _scale_and_pca(
+        df, feature_cols, zscore_by_season, n_pca_components, pca_variance, seed
+    )
+
+    print(f"  GMM sweep (cov_type={cov_type}, n={len(df)} team-seasons):")
+    print(f"  {'k':>4}  {'silhouette':>11}  {'BIC':>12}  {'AIC':>12}")
+
+    results = {}
+    for k in k_range:
+        if len(df) < k * 2:
+            continue
+        gmm = GaussianMixture(
+            n_components=k,
+            covariance_type=cov_type,
+            init_params="kmeans",
+            n_init=10,
+            max_iter=300,
+            random_state=seed,
+        )
+        gmm.fit(X)
+        labels = gmm.predict(X)
+        sil    = silhouette_score(X, labels)
+        bic    = gmm.bic(X)
+        aic    = gmm.aic(X)
+        results[k] = {"silhouette": sil, "bic": bic, "aic": aic}
+        bar = "█" * max(0, int(sil * 50))
+        print(f"  {k:>4}  {sil:>10.4f}  {bic:>12.1f}  {aic:>12.1f}  {bar}")
+
+    if not results:
+        print("  No valid k values.")
+        return {}
+
+    best_sil = max(results, key=lambda k: results[k]["silhouette"])
+    best_bic = min(results, key=lambda k: results[k]["bic"])
+    best_aic = min(results, key=lambda k: results[k]["aic"])
+    print(f"\n  Best k by silhouette : {best_sil}  ({results[best_sil]['silhouette']:.4f})")
+    print(f"  Best k by BIC        : {best_bic}  (BIC={results[best_bic]['bic']:.1f})")
+    print(f"  Best k by AIC        : {best_aic}  (AIC={results[best_aic]['aic']:.1f})")
+    return results
+
+
 def sweep_k(
     feature_df: pd.DataFrame,
     feature_cols: list = None,
@@ -810,9 +948,18 @@ def main():
                         help="Only aggregate plays from same-conference games. "
                              "Removes cupcake-game noise (~40%% fewer rows, higher quality).")
     parser.add_argument("--sweep-k", action="store_true",
-                        help="Try k=2..12 and report silhouette + inertia, then exit")
+                        help="Try k=2..12 and report silhouette + inertia (or BIC/AIC for GMM), then exit")
     parser.add_argument("--plot", action="store_true",
                         help="Generate pca_variance.png, elbow.png, clusters.png")
+    parser.add_argument("--gmm", action="store_true",
+                        help="Use GaussianMixture instead of MiniBatchKMeans. "
+                             "Adds soft probabilities (gmm_proba_*) and reports BIC + AIC.")
+    parser.add_argument("--cov-type", default="diag",
+                        choices=["diag", "full", "tied", "spherical"],
+                        help="GMM covariance type (default: diag). "
+                             "'diag' is fastest and usually best for high-dim PCA space. "
+                             "'full' is most expressive but needs more data. "
+                             "Only used when --gmm is set.")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -822,7 +969,8 @@ def main():
     mode_label = (
         f"{'style-only' if args.style_only else 'all-features'}  "
         f"{'+ zscore-by-season' if args.zscore_by_season else ''}  "
-        f"{'+ conf-only' if args.conf_only else ''}"
+        f"{'+ conf-only' if args.conf_only else ''}  "
+        f"{'+ GMM(' + args.cov_type + ')' if args.gmm else '+ KMeans'}"
     ).strip()
     print(f"\nFeature mode: {mode_label}")
     print(f"Features ({len(feature_cols)}): {feature_cols}")
@@ -855,15 +1003,27 @@ def main():
 
     # ── Sweep or cluster ──────────────────────────────────────────────────────
     if args.sweep_k:
-        print("\n── Silhouette sweep ───────────────────────────────────────────────")
-        sweep_k(
-            feature_df,
-            feature_cols=available,
-            zscore_by_season=args.zscore_by_season,
-            n_pca_components=args.pca_components,
-            pca_variance=args.pca_variance,
-            seed=args.seed,
-        )
+        if args.gmm:
+            print("\n── GMM silhouette / BIC / AIC sweep ───────────────────────────────")
+            sweep_k_gmm(
+                feature_df,
+                feature_cols=available,
+                zscore_by_season=args.zscore_by_season,
+                n_pca_components=args.pca_components,
+                pca_variance=args.pca_variance,
+                cov_type=args.cov_type,
+                seed=args.seed,
+            )
+        else:
+            print("\n── Silhouette sweep ───────────────────────────────────────────────")
+            sweep_k(
+                feature_df,
+                feature_cols=available,
+                zscore_by_season=args.zscore_by_season,
+                n_pca_components=args.pca_components,
+                pca_variance=args.pca_variance,
+                seed=args.seed,
+            )
         if args.plot:
             print("\n── Elbow plot ─────────────────────────────────────────────────────")
             plot_elbow(
@@ -876,16 +1036,29 @@ def main():
             )
         return
 
-    print(f"\n── Clustering (k={args.k}) ─────────────────────────────────────────")
-    labeled_df, centroid_df, scaler, pca, km = cluster_teams(
-        feature_df,
-        k=args.k,
-        feature_cols=available,
-        zscore_by_season=args.zscore_by_season,
-        n_pca_components=args.pca_components,
-        pca_variance=args.pca_variance,
-        seed=args.seed,
-    )
+    if args.gmm:
+        print(f"\n── GMM clustering (k={args.k}, cov_type={args.cov_type}) ─────────")
+        labeled_df, centroid_df, _, _, _ = cluster_teams_gmm(
+            feature_df,
+            k=args.k,
+            feature_cols=available,
+            zscore_by_season=args.zscore_by_season,
+            n_pca_components=args.pca_components,
+            pca_variance=args.pca_variance,
+            cov_type=args.cov_type,
+            seed=args.seed,
+        )
+    else:
+        print(f"\n── Clustering (k={args.k}) ─────────────────────────────────────")
+        labeled_df, centroid_df, _, _, _ = cluster_teams(
+            feature_df,
+            k=args.k,
+            feature_cols=available,
+            zscore_by_season=args.zscore_by_season,
+            n_pca_components=args.pca_components,
+            pca_variance=args.pca_variance,
+            seed=args.seed,
+        )
 
     if centroid_df is None:
         return
